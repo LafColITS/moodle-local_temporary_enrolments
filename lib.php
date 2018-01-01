@@ -26,18 +26,19 @@ require_once($CFG->dirroot. '/lib/accesslib.php');
 require_once($CFG->dirroot. '/admin/roles/classes/define_role_table_advanced.php');
 require_once($CFG->dirroot. '/lib/moodlelib.php');
 
-define("LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME", "temporary_enrollment");
+define("LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME", "provisionally_enrolled");
+define("LOCAL_PROVISIONAL_ENROLMENTS_FULLNAME", "Provisionally Enrolled");
 
 /**
  * Send an email (init, remind, upgrade, or expire).
  *
  * @param object $data This should be an event object (or in the case of remind_task(), a fake event object).
  * @param string $which studentinit | teacherinit | remind | upgrade | expire
- * @param string $toid relateduserid | userid (defaults to student, can be set to 'userid' to send to teacher)
+ * @param string $sendto relateduserid | userid (defaults to student, can be set to 'userid' to send to teacher)
  *
  * @return void
  */
-function send_provisional_enrolments_email($data, $which, $toid='relateduserid') {
+function send_provisional_enrolments_email($data, $which, $sendto='relateduserid') {
     global $DB, $CFG;
 
     // Build 'from' object.
@@ -99,7 +100,7 @@ function send_provisional_enrolments_email($data, $which, $toid='relateduserid')
  *
  * @return boolean exists or not
  */
-function temp_role_exists() {
+function custom_role_exists() {
     global $DB;
 
     if ($DB->record_exists('role', array('shortname' => LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME))) {
@@ -113,12 +114,12 @@ function temp_role_exists() {
  *
  * @return void
  */
-function create_temp_role() {
+function create_custom_role() {
     global $DB;
 
     // Create the role entry.
-    $description = "A role for temporary course enrollment, used by the Provisional Enrolments plugin.";
-    create_role('Temporary enrollment', LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME, $description, 'student');
+    $description = "A role for provisional course enrollment, used by the Provisional Enrolments plugin.";
+    create_role(LOCAL_PROVISIONAL_ENROLMENTS_FULLNAME, LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME, $description, 'student');
     $role = $DB->get_record('role', array('shortname' => LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME));
 
     // Set context levels (50 only).
@@ -149,9 +150,15 @@ function update_remind_freq($task, $newfreq) {
     $DB->update_record('task_scheduled', $update);
 }
 
-function update_length($newlength) {
+/**
+ * Update the remaining length of a provisional enrolment
+ *
+ * @param object $newlength Should be the updated length of the provisional enrolment
+ *
+ * @return void
+ */function update_length($newlength) {
     global $DB;
-    
+
     $expirations = $DB->get_records('local_provisional_enrolments');
     foreach ($expirations as $expiration) {
         $newtimeend = $expiration->timestart + $newlength;
