@@ -1,8 +1,8 @@
 # Provisional Enrolments
 
-A Moodle module to manage course site access for waitlisted students.
+A Moodle module to manage provisional/temporary course site access for waitlisted or unregistered students.
 
-This plugin creates a new role "Waitlisted".
+This plugin creates a new role "Provisionally Enrolled".
 
 # This role:
     - automatically expires (unenrolling the student) after 2 weeks (configurable)
@@ -19,4 +19,4 @@ This plugin creates a new role "Waitlisted".
     - Email content: You can edit the content of all the aforementioned emails. Special tags like {STUDENTFIRST} or {TEACHER} are used to generate personalized email content
 
 # What you shouldn't change:
-    - Do not change the shortname/identifier of the "waitlisted" role
+    - Do not change the shortname/identifier of the "provisionally_enrolled" role
