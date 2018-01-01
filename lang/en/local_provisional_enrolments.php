@@ -1,0 +1,90 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Version details.
+ *
+ * @package    local_provisional_enrolments
+ * @copyright  2017 onwards Andrew Zito
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+$string['expire_content_default'] = '{SUBJECT: Temporary enrollment for {COURSE} expired}
+
+Dear {STUDENTFIRST},
+
+Your temporary access to {COURSE} has expired or been revoked. You will no longer be able to access this course. If you wish to participate in this course, please register for it through Central Records.';
+$string['expire_content_desc'] = 'Expiration email';
+$string['expire_content_subdesc'] = 'Emailed to student upon expiration of their temporary enrollment (if they have not been fully enrolled)';
+$string['expire_onoff_desc'] = 'Turn expiration email on/off';
+$string['expire_onoff_subdesc'] = 'Check the box to turn expiration emails on/off. This does not affect automatic unenrollment.';
+$string['expire_task'] = 'Check for expired temporary roles and remove them';
+$string['length_desc'] = 'Duration of temporary enrollment';
+$string['length_subdesc'] = 'How long temporary enrollment of a student will last before expiring';
+$string['onoff_desc'] = 'Turn provisional enrolments on';
+$string['onoff_subdesc'] = 'Check the box to turn on provisional enrolments (will create Temporary Enrollment role if it does not already exist). WARNING: If this plugin has previously been turned on and you turn it off, the Temporary Enrollment role will still be available. You must remove it manually if you want to completely stop using temporary enrollment.';
+$string['pluginname'] = 'Provisional enrolments';
+$string['remind_content_default'] = '{SUBJECT: Temporary enrollment reminder for {COURSE}}
+
+Dear {STUDENTFIRST},
+
+Please be advised that your temporary enrollment in {COURSE} will expire in {TIMELEFT} days. If you wish to continue participating in this course you MUST register for it through TheHub or Central Records.';
+$string['remind_content_desc'] = 'Reminder email';
+$string['remind_content_subdesc'] = 'Emailed to student every x days to remind them that their enrollment is only temporary';
+$string['remind_freq_desc'] = 'Reminder email frequency';
+$string['remind_freq_subdesc'] = 'Reminder emails are sent every ____ days';
+$string['remind_onoff_desc'] = 'Turn reminder email on/off';
+$string['remind_onoff_subdesc'] = 'Check the box to turn reminder emails on or off.';
+$string['remind_task'] = 'Send out temporary enrollment reminder emails';
+$string['studentinit_content_default'] = '{SUBJECT: Temporary enrollment granted for {COURSE}}
+
+Dear {STUDENTFIRST},
+
+You have been granted temporary access to the Moodle site for {COURSE}. After you are officially registered for the course, you will receive student access for the remainder of the semester. Temporary access will expire after 14 days. Though faculty can add you to Moodle, they CANNOT register you for the course.
+
+Notes:
+
+Register on TheHub until the add deadline.
+
+    To register for the course with instructor approval between the add deadline and the drop deadline at the beginning of the semester, submit a signed course enrollment form to Central Records. The form is located on the register and drop sections page on your student menu on TheHub and in Central Records.
+
+    Continue to check your schedule on TheHub until all courses you are attending are listed.
+
+    You can refer to the Academic Calendar for registration dates and deadlines.
+
+Five College students taking Hampshire courses should follow the instructions at their home institutions to complete registration.';
+$string['studentinit_content_desc'] = 'Student initial email';
+$string['studentinit_content_subdesc'] = 'Emailed to student upon being temporarily enrolled';
+$string['studentinit_onoff_desc'] = 'Turn student initial email on/off';
+$string['studentinit_onoff_subdesc'] = 'Check the box to turn student initial email on/off. This does not affect actual enrollment.';
+$string['teacherinit_content_default'] = '{SUBJECT: Temporary enrollment granted to {STUDENTFULL} for {COURSE}}
+
+Dear {TEACHER},
+
+You have granted {STUDENTFULL} temporary access to {COURSE}. Temporary enrollment will expire after 14 days. Though you can add students to Moodle, you CANNOT register them for the course. They may register through TheHub until the add deadline. To register for the course with instructor approval between the add deadline and the drop deadline, students must submit a signed course enrollment form to Central Records if they wish to be enrolled.';
+$string['teacherinit_content_desc'] = 'Teacher initial email';
+$string['teacherinit_content_subdesc'] = 'Emailed to the teacher who enrolled a student temporarily';
+$string['teacherinit_onoff_desc'] = 'Turn teacher initial email on/off';
+$string['teacherinit_onoff_subdesc'] = 'Check the box to turn teacher initial email on/off. This does not affect actual enrollment.';
+$string['upgrade_content_default'] = '{SUBJECT: Temporary enrollment for {COURSE} upgraded!}
+
+Dear {STUDENTFIRST},
+
+Your temporary access to {COURSE} has been upgraded to full enrollment! You are now registered for this course and have permanent access to the Moodle site.';
+$string['upgrade_content_desc'] = 'Upgrade email';
+$string['upgrade_content_subdesc'] = 'Emailed to student if they are enrolled fully (upgrading their enrollment to permanent status).';
+$string['upgrade_onoff_desc'] = 'Turn upgrade email on/off';
+$string['upgrade_onoff_subdesc'] = 'Check the box to turn upgrade email on/off. Does not affect actual enrollment.';

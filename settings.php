@@ -1,0 +1,125 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+defined('MOODLE_INTERNAL') || die;
+require_once($CFG->dirroot. '/local/provisional_enrolments/lib.php');
+
+if ($hassiteconfig) {
+    global $DB, $CFG;
+
+    // Create role if needed.
+    $onoff = $DB->get_record('config', array('name' => 'local_provisional_enrolments_onoff'));
+    if ($onoff) {
+        if ($onoff->value) {
+            if (!temp_role_exists()) {
+                create_temp_role();
+            }
+        }
+    }
+
+    // Update reminder email frequency in DB if needed.
+    $remindfreq = $DB->get_record('config', array('name' => 'local_provisional_enrolments_remind_freq'));
+    if ($remindfreq) { // In case it hasn't been set yet.
+        $task = $DB->get_record('task_scheduled', array('classname' => '\local_provisional_enrolments\task\remind_task'));
+        if (explode('/', $task->day)[1] != $remindfreq->value) {
+            update_remind_freq($task, $remindfreq);
+        }
+    }
+
+    // Update length of temporary enrollment if needed.
+    $lengthcfg = $DB->get_record('config', array('name' => 'local_provisional_enrolments_length'));
+    $expire = $DB->get_record('local_provisional_enrolments', array(), '*', IGNORE_MULTIPLE);
+    if ($lengthcfg && $expire) {
+        $lengthactual = $expire->timeend - $expire->timestart;
+        if ($lengthcfg->value != $lengthactual) {
+            update_length($lengthcfg->value);
+        }
+    }
+
+    // Begin the actual settings.
+
+    $settings = new admin_settingpage('local_provisional_enrolments', get_string('pluginname', 'local_provisional_enrolments'));
+
+    $settings->add(new admin_setting_configcheckbox('local_provisional_enrolments_onoff',
+        get_string('onoff_desc', 'local_provisional_enrolments'),
+        get_string('onoff_subdesc', 'local_provisional_enrolments'),
+        0));
+
+    $settings->add(new admin_setting_configduration('local_provisional_enrolments_length',
+        get_string('length_desc', 'local_provisional_enrolments'),
+        get_string('length_subdesc', 'local_provisional_enrolments'),
+        $defaultsetting = 1209600,
+        $defaultunit = 604800));
+
+    $settings->add(new admin_setting_configtext('local_provisional_enrolments_remind_freq',
+        get_string('remind_freq_desc', 'local_provisional_enrolments'),
+        get_string('remind_freq_subdesc', 'local_provisional_enrolments'),
+        $defaultsetting = '2',
+        $paramtype = "/^0*[1-9]{1,2}$/",
+        $size = 1));
+
+    $settings->add(new admin_setting_configcheckbox('local_provisional_enrolments_studentinit_onoff',
+        get_string('studentinit_onoff_desc', 'local_provisional_enrolments'),
+        get_string('studentinit_onoff_subdesc', 'local_provisional_enrolments'),
+        1));
+
+    $settings->add(new admin_setting_configtextarea('local_provisional_enrolments_studentinit_content',
+        get_string('studentinit_content_desc', 'local_provisional_enrolments'),
+        get_string('studentinit_content_subdesc', 'local_provisional_enrolments'),
+        get_string('studentinit_content_default', 'local_provisional_enrolments')));
+
+    $settings->add(new admin_setting_configcheckbox('local_provisional_enrolments_teacherinit_onoff',
+        get_string('teacherinit_onoff_desc', 'local_provisional_enrolments'),
+        get_string('teacherinit_onoff_subdesc', 'local_provisional_enrolments'),
+        1));
+
+    $settings->add(new admin_setting_configtextarea('local_provisional_enrolments_teacherinit_content',
+        get_string('teacherinit_content_desc', 'local_provisional_enrolments'),
+        get_string('teacherinit_content_subdesc', 'local_provisional_enrolments'),
+        get_string('teacherinit_content_default', 'local_provisional_enrolments')));
+
+    $settings->add(new admin_setting_configcheckbox('local_provisional_enrolments_remind_onoff',
+        get_string('remind_onoff_desc', 'local_provisional_enrolments'),
+        get_string('remind_onoff_subdesc', 'local_provisional_enrolments'),
+        1));
+
+    $settings->add(new admin_setting_configtextarea('local_provisional_enrolments_remind_content',
+        get_string('remind_content_desc', 'local_provisional_enrolments'),
+        get_string('remind_content_subdesc', 'local_provisional_enrolments'),
+        get_string('remind_content_default', 'local_provisional_enrolments')));
+
+    $settings->add(new admin_setting_configcheckbox('local_provisional_enrolments_expire_onoff',
+        get_string('expire_onoff_desc', 'local_provisional_enrolments'),
+        get_string('expire_onoff_subdesc', 'local_provisional_enrolments'),
+        1));
+
+    $settings->add(new admin_setting_configtextarea('local_provisional_enrolments_expire_content',
+        get_string('expire_content_desc', 'local_provisional_enrolments'),
+        get_string('expire_content_subdesc', 'local_provisional_enrolments'),
+        get_string('expire_content_default', 'local_provisional_enrolments')));
+
+    $settings->add(new admin_setting_configcheckbox('local_provisional_enrolments_upgrade_onoff',
+        get_string('upgrade_onoff_desc', 'local_provisional_enrolments'),
+        get_string('upgrade_onoff_subdesc', 'local_provisional_enrolments'),
+        1));
+
+    $settings->add(new admin_setting_configtextarea('local_provisional_enrolments_upgrade_content',
+        get_string('upgrade_content_desc', 'local_provisional_enrolments'),
+        get_string('upgrade_content_subdesc', 'local_provisional_enrolments'),
+        get_string('upgrade_content_default', 'local_provisional_enrolments')));
+
+    $ADMIN->add('localplugins', $settings);
+}
