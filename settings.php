@@ -24,8 +24,8 @@ if ($hassiteconfig) {
     $onoff = $DB->get_record('config', array('name' => 'local_provisional_enrolments_onoff'));
     if ($onoff) {
         if ($onoff->value) {
-            if (!temp_role_exists()) {
-                create_temp_role();
+            if (!custom_role_exists()) {
+                create_custom_role();
             }
         }
     }
