@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/provisional_enrolments/db" VERSION="20160622" COMMENT="XMLDB file for Moodle local/provisional_enrolments"
+<XMLDB PATH="local/temporary_enrolments/db" VERSION="20160622" COMMENT="XMLDB file for Moodle local/temporary_enrolments"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="local_provisional_enrolments" COMMENT="Stores expiration times for temporary enrollment">
+    <TABLE NAME="local_temporary_enrolments" COMMENT="Stores expiration times for temporary enrolment">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="roleassignid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The start time of the role assignment entry"/>
         <FIELD NAME="timeend" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The expiration time of the role assignment entry"/>
-        <FIELD NAME="upgraded" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Was this temporary role upgraded to full enrollment?"/>
+        <FIELD NAME="upgraded" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Was this temporary role upgraded to full enrolment?"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="id" TYPE="primary" FIELDS="id"/>

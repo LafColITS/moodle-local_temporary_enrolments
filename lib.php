@@ -17,7 +17,7 @@
 /**
  * Version details.
  *
- * @package    local_provisional_enrolments
+ * @package    local_temporary_enrolments
  * @copyright  2017 onwards Andrew Zito
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,8 +26,8 @@ require_once($CFG->dirroot. '/lib/accesslib.php');
 require_once($CFG->dirroot. '/admin/roles/classes/define_role_table_advanced.php');
 require_once($CFG->dirroot. '/lib/moodlelib.php');
 
-define("LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME", "provisionally_enrolled");
-define("LOCAL_PROVISIONAL_ENROLMENTS_FULLNAME", "Provisionally Enrolled");
+define("LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME", "temporary_enrolment");
+define("LOCAL_TEMPORARY_ENROLMENTS_FULLNAME", "Temporarily Enrolled");
 
 /**
  * Send an email (init, remind, upgrade, or expire).
@@ -38,7 +38,7 @@ define("LOCAL_PROVISIONAL_ENROLMENTS_FULLNAME", "Provisionally Enrolled");
  *
  * @return void
  */
-function send_provisional_enrolments_email($data, $which, $sendto='relateduserid') {
+function send_temporary_enrolments_email($data, $which, $sendto='relateduserid') {
     global $DB, $CFG;
 
     // Build 'from' object.
@@ -52,8 +52,8 @@ function send_provisional_enrolments_email($data, $which, $sendto='relateduserid
     $course = $DB->get_record('course', array('id' => $data->courseid));
     $student = $DB->get_record('user', array('id' => $data->relateduserid));
     $teacher = $DB->get_record('user', array('id' => $data->userid));
-    if ($DB->record_exists('local_provisional_enrolments', array('roleassignid' => $data->other['id']))) {
-        $expiration = $DB->get_record('local_provisional_enrolments', array('roleassignid' => $data->other['id']));
+    if ($DB->record_exists('local_temporary_enrolments', array('roleassignid' => $data->other['id']))) {
+        $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $data->other['id']));
     } else {
         $expiration = new stdClass();
         $expiration->timeend = 0;
@@ -80,7 +80,7 @@ function send_provisional_enrolments_email($data, $which, $sendto='relateduserid
     );
 
     // Get raw email content.
-    $message = $CFG->{'local_provisional_enrolments_'.$which.'_content'};
+    $message = $CFG->{'local_temporary_enrolments_'.$which.'_content'};
 
      // Subject.
     $subject = array();
@@ -96,21 +96,21 @@ function send_provisional_enrolments_email($data, $which, $sendto='relateduserid
 }
 
 /**
- * Check if temporary enrollment role exists
+ * Check if temporary enrolment role exists
  *
  * @return boolean exists or not
  */
 function custom_role_exists() {
     global $DB;
 
-    if ($DB->record_exists('role', array('shortname' => LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME))) {
+    if ($DB->record_exists('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME))) {
         return true;
     }
     return false;
 }
 
 /**
- * Create temporary_enrollment role
+ * Create temporary_enrolment role
  *
  * @return void
  */
@@ -118,16 +118,16 @@ function create_custom_role() {
     global $DB;
 
     // Create the role entry.
-    $description = "A role for provisional course enrollment, used by the Provisional Enrolments plugin.";
-    create_role(LOCAL_PROVISIONAL_ENROLMENTS_FULLNAME, LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME, $description, 'student');
-    $role = $DB->get_record('role', array('shortname' => LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME));
+    $description = "A role for temporary course enrolment, used by the Temporary Enrolments plugin.";
+    create_role(LOCAL_TEMPORARY_ENROLMENTS_FULLNAME, LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME, $description, 'student');
+    $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
 
     // Set context levels (50 only).
     set_role_contextlevels($role->id, array(CONTEXT_COURSE));
 
     $context = context_system::instance();
 
-    // Loop through student capabilities and assign them to temporary_enrollment.
+    // Loop through student capabilities and assign them to temporary_enrolment.
     $capabilities = get_default_capabilities('student');
     foreach ($capabilities as $name => $val) {
         assign_capability($name, $val, $role->id, $context->id);
@@ -151,20 +151,20 @@ function update_remind_freq($task, $newfreq) {
 }
 
 /**
- * Update the remaining length of a provisional enrolment
+ * Update the remaining length of a temporary enrolment
  *
- * @param object $newlength Should be the updated length of the provisional enrolment
+ * @param object $newlength Should be the updated length of the temporary enrolment
  *
  * @return void
  */function update_length($newlength) {
     global $DB;
 
-    $expirations = $DB->get_records('local_provisional_enrolments');
+    $expirations = $DB->get_records('local_temporary_enrolments');
     foreach ($expirations as $expiration) {
         $newtimeend = $expiration->timestart + $newlength;
         $update = new stdClass();
         $update->id = $expiration->id;
         $update->timeend = $newtimeend;
-        $DB->update_record('local_provisional_enrolments', $update);
+        $DB->update_record('local_temporary_enrolments', $update);
     }
 }

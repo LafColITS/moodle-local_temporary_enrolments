@@ -17,7 +17,7 @@
 /**
  * Version details.
  *
- * @package    local_provisional_enrolments
+ * @package    local_temporary_enrolments
  * @copyright  2017 onwards Andrew Zito
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = array(
     array(
-        'classname' => 'local_provisional_enrolments\task\remind_task',
+        'classname' => 'local_temporary_enrolments\task\remind_task',
         'blocking' => 0,
         'minute' => '0',
         'hour' => '8',
@@ -36,7 +36,7 @@ $tasks = array(
     ),
 
     array(
-        'classname' => 'local_provisional_enrolments\task\expire_task',
+        'classname' => 'local_temporary_enrolments\task\expire_task',
         'blocking' => 0,
         'minute' => '*',
         'hour' => '*',

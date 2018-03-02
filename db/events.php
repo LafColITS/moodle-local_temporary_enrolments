@@ -17,7 +17,7 @@
 /**
  * Version details.
  *
- * @package    local_provisional_enrolments
+ * @package    local_temporary_enrolments
  * @copyright  2017 onwards Andrew Zito
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,16 +28,16 @@ $observers = array(
 
     array(
         'eventname' => '\core\event\role_assigned',
-        'callback'  => '\local_provisional_enrolments\observers::initialize',
+        'callback'  => '\local_temporary_enrolments\observers::initialize',
     ),
 
     array(
         'eventname' => '\core\event\role_assigned',
-        'callback'  => '\local_provisional_enrolments\observers::upgrade',
+        'callback'  => '\local_temporary_enrolments\observers::upgrade',
     ),
 
     array(
         'eventname' => '\core\event\role_unassigned',
-        'callback'  => '\local_provisional_enrolments\observers::expire',
+        'callback'  => '\local_temporary_enrolments\observers::expire',
     ),
 );

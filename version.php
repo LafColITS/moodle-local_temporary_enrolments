@@ -20,7 +20,7 @@
  *
  * This file contains version information for the Temporary Enrolment Module by Andrew Zito
  *
- * @package    local_provisional_enrolments
+ * @package    local_temporary_enrolments
  * @copyright  2017 onwards Andrew Zito
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,6 +29,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2017060800;        // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2016120500;        // Requires this Moodle version
-$plugin->component = 'local_provisional_enrolments';  // Full name of the plugin (used for diagnostics)
+$plugin->component = 'local_temporary_enrolments';  // Full name of the plugin (used for diagnostics)
 $plugin->maturity = MATURITY_ALPHA;
 $plugin->release   = '1.0.0';

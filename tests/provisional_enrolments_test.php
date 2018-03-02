@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tests for local_provisional_enrolments
+ * Tests for local_temporary_enrolments
  *
- * @package    local_provisional_enrolments
+ * @package    local_temporary_enrolments
  * @category   phpunit
  * @copyright  2017 onwards Andrew Zito
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,11 +27,11 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot. '/enrol/flatfile/lib.php');
-require_once($CFG->dirroot. '/local/provisional_enrolments/lib.php');
-use local_provisional_enrolments\task\remind_task;
-use local_provisional_enrolments\task\expire_task;
+require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
+use local_temporary_enrolments\task\remind_task;
+use local_temporary_enrolments\task\expire_task;
 
-class local_provisional_enrolments_testcase extends advanced_testcase {
+class local_temporary_enrolments_testcase extends advanced_testcase {
 
     /**
      * Make various data objects that all the functions need to use
@@ -39,7 +39,7 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
      * @return array of data objects
      */
     public function make() {
-        set_config('local_provisional_enrolments_onoff', 1);
+        set_config('local_temporary_enrolments_onoff', 1);
         unset_config('noemailever');
 
         $teacher = $this->getDataGenerator()->create_user(array(
@@ -56,7 +56,7 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
         ));
         $this->setUser($teacher);
         $course = $this->getDataGenerator()->create_course(array('shortname' => 'testcourse'));
-        $role = $this->getDataGenerator()->create_role(array('shortname' => 'temporary_enrollment'));
+        $role = $this->getDataGenerator()->create_role(array('shortname' => 'temporary_enrolment'));
         return array('teacher' => $teacher, 'student' => $student, 'course' => $course, 'role' => $role);
     }
 
@@ -78,13 +78,13 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
     public function test_role_creation() {
         $this->resetAfterTest();
         global $DB;
-        set_config('local_provisional_enrolments_onoff', true);
+        set_config('local_temporary_enrolments_onoff', true);
         create_temp_role();
 
         // Role should exist. Duh.
         $this->assertEquals(true, temp_role_exists());
 
-        $temprole = $DB->get_record('role', array('shortname' => LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME));
+        $temprole = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
 
         // Only context level should be 50 (course).
@@ -128,12 +128,12 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
             ),
         ));
 
-        $customtable = $DB->get_records('local_provisional_enrolments');
+        $customtable = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(0, count($customtable)); // Table should be empty.
 
         $event->trigger();
 
-        $customtable = $DB->get_records('local_provisional_enrolments');
+        $customtable = $DB->get_records('local_temporary_enrolments');
         $expiration = $customtable[array_keys($customtable)[0]];
         $this->assertEquals(1, count($customtable)); // Now should have 1 entry.
         $this->assertEquals($event->other['id'], $expiration->roleassignid);
@@ -152,7 +152,7 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
 
         $data = $this->make();
 
-        set_config('local_provisional_enrolments_onoff', 0);
+        set_config('local_temporary_enrolments_onoff', 0);
 
         $context = \context_course::instance($data['course']->id);
         $event = \core\event\role_assigned::create(array(
@@ -165,12 +165,12 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
             ),
         ));
 
-        $customtable = $DB->get_records('local_provisional_enrolments');
+        $customtable = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(0, count($customtable)); // Table should be empty.
 
         $event->trigger();
 
-        $customtable = $DB->get_records('local_provisional_enrolments');
+        $customtable = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(0, count($customtable)); // Table should STILL be empty.
     }
 
@@ -228,13 +228,13 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
         $results = $sink->get_messages();
 
         $body = array('Dear Stu', 'temporary access to the Moodle site for '.$data['course']->fullname);
-        $this->email_has($results[0], $body, 'Temporary enrollment granted for '.$data['course']->fullname, 'student@');
+        $this->email_has($results[0], $body, 'Temporary enrolment granted for '.$data['course']->fullname, 'student@');
 
         $body = array('Dear Tea', 'You have granted Stu Dent temporary access to '.$data['course']->fullname);
-        $this->email_has($results[1], $body, 'Temporary enrollment granted to Stu Dent for '.$data['course']->fullname, 'teacher@');
+        $this->email_has($results[1], $body, 'Temporary enrolment granted to Stu Dent for '.$data['course']->fullname, 'teacher@');
 
         // Studentinit turned off.
-        set_config('local_provisional_enrolments_studentinit_onoff', 0);
+        set_config('local_temporary_enrolments_studentinit_onoff', 0);
         $event = \core\event\role_assigned::create(array(
             'context' => $context,
             'objectid' => $data['role'],
@@ -250,11 +250,11 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
         $results = $sink->get_messages();
         $this->assertEquals(1, count($results));
         $body = array('Dear Tea', 'You have granted Stu Dent temporary access to '.$data['course']->fullname);
-        $this->email_has($results[0], $body, 'Temporary enrollment granted to Stu Dent for '.$data['course']->fullname, 'teacher@');
+        $this->email_has($results[0], $body, 'Temporary enrolment granted to Stu Dent for '.$data['course']->fullname, 'teacher@');
 
         // Teacherinit turned off.
-        set_config('local_provisional_enrolments_teacherinit_onoff', 0);
-        set_config('local_provisional_enrolments_studentinit_onoff', 1);
+        set_config('local_temporary_enrolments_teacherinit_onoff', 0);
+        set_config('local_temporary_enrolments_studentinit_onoff', 1);
         $event = \core\event\role_assigned::create(array(
             'context' => $context,
             'objectid' => $data['role'],
@@ -270,10 +270,10 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
         $results = $sink->get_messages();
         $this->assertEquals(1, count($results));
         $body = array('Dear Stu', 'temporary access to the Moodle site for '.$data['course']->fullname);
-        $this->email_has($results[0], $body, 'Temporary enrollment granted for '.$data['course']->fullname, 'student@');
+        $this->email_has($results[0], $body, 'Temporary enrolment granted for '.$data['course']->fullname, 'student@');
 
         // Both initial emails off.
-        set_config('local_provisional_enrolments_studentinit_onoff', 0);
+        set_config('local_temporary_enrolments_studentinit_onoff', 0);
         $event = \core\event\role_assigned::create(array(
             'context' => $context,
             'objectid' => $data['role'],
@@ -302,7 +302,7 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
 
         $data = $this->make();
 
-        set_config('local_provisional_enrolments_onoff', 0);
+        set_config('local_temporary_enrolments_onoff', 0);
 
         $sink = $this->redirectEmails();
 
@@ -332,15 +332,15 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
         $this->resetAfterTest();
         global $DB, $CFG;
 
-        $task = $DB->get_record('task_scheduled', array('classname' => '\local_provisional_enrolments\task\remind_task'));
+        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
         $this->assertEquals(0, $task->minute);
         $this->assertEquals(8, $task->hour);
         $this->assertEquals('*/2', $task->day);
 
-        set_config('local_provisional_enrolments_remind_freq', 4);
-        update_remind_freq($task, $DB->get_record('config', array('name' => 'local_provisional_enrolments_remind_freq')));
+        set_config('local_temporary_enrolments_remind_freq', 4);
+        update_remind_freq($task, $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq')));
 
-        $task = $DB->get_record('task_scheduled', array('classname' => '\local_provisional_enrolments\task\remind_task'));
+        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
         $this->assertEquals('*/4', $task->day);
     }
 
@@ -354,17 +354,17 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
         $this->resetAfterTest();
         global $DB, $CFG;
 
-        set_config('local_provisional_enrolments_onoff', 0);
+        set_config('local_temporary_enrolments_onoff', 0);
 
-        $task = $DB->get_record('task_scheduled', array('classname' => '\local_provisional_enrolments\task\remind_task'));
+        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
         $this->assertEquals(0, $task->minute);
         $this->assertEquals(8, $task->hour);
         $this->assertEquals('*/2', $task->day);
 
-        set_config('local_provisional_enrolments_remind_freq', 4);
-        update_remind_freq($task, $DB->get_record('config', array('name' => 'local_provisional_enrolments_remind_freq')));
+        set_config('local_temporary_enrolments_remind_freq', 4);
+        update_remind_freq($task, $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq')));
 
-        $task = $DB->get_record('task_scheduled', array('classname' => '\local_provisional_enrolments\task\remind_task'));
+        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
         $this->assertEquals('*/4', $task->day);
     }
 
@@ -391,11 +391,11 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
         $sink->close();
         $results = $sink->get_messages();
 
-        $body = array('Dear Stu', 'temporary enrollment in '.$data['course']->fullname." will expire", "in 14 days");
-        $this->email_has($results[0], $body, 'Temporary enrollment reminder for '.$data['course']->fullname, 'student@');
+        $body = array('Dear Stu', 'temporary enrolment in '.$data['course']->fullname." will expire", "in 14 days");
+        $this->email_has($results[0], $body, 'Temporary enrolment reminder for '.$data['course']->fullname, 'student@');
 
         // Remind emails off.
-        set_config('local_provisional_enrolments_remind_onoff', 0);
+        set_config('local_temporary_enrolments_remind_onoff', 0);
         $sink = $this->redirectEmails();
         $task->execute();
         $sink->close();
@@ -415,7 +415,7 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
 
         $data = $this->make();
 
-        set_config('local_provisional_enrolments_onoff', 0);
+        set_config('local_temporary_enrolments_onoff', 0);
 
         $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
         $e = new enrol_manual_plugin();
@@ -479,7 +479,7 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
 
         $data = $this->make();
 
-        set_config('local_provisional_enrolments_onoff', 0);
+        set_config('local_temporary_enrolments_onoff', 0);
 
         $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
         $selfenrol = $DB->get_record('enrol', array('enrol' => 'self', 'courseid' => $data['course']->id));
@@ -526,11 +526,11 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
 
         $e->enrol_user($enrol, $data['student']->id, $data['role']);
 
-        $customtable = $DB->get_records('local_provisional_enrolments');
+        $customtable = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(1, count($customtable));
 
         role_unassign($data['role'], $data['student']->id, $context->id);
-        $customtable = $DB->get_records('local_provisional_enrolments');
+        $customtable = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(0, count($customtable));
     }
 
@@ -552,13 +552,13 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
 
         $e->enrol_user($enrol, $data['student']->id, $data['role']);
 
-        $customtable = $DB->get_records('local_provisional_enrolments');
+        $customtable = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(1, count($customtable));
 
-        set_config('local_provisional_enrolments_onoff', 0);
+        set_config('local_temporary_enrolments_onoff', 0);
 
         role_unassign($data['role'], $data['student']->id, $context->id);
-        $customtable = $DB->get_records('local_provisional_enrolments');
+        $customtable = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(0, count($customtable));
     }
 
@@ -570,7 +570,7 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
     public function test_expire_automatic() {
         $this->resetAfterTest();
         global $DB, $CFG;
-        set_config('local_provisional_enrolments_length', 5);
+        set_config('local_temporary_enrolments_length', 5);
 
         $data = $this->make();
 
@@ -599,11 +599,11 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
     public function test_expire_automatic_off() {
         $this->resetAfterTest();
         global $DB, $CFG;
-        set_config('local_provisional_enrolments_length', 5);
+        set_config('local_temporary_enrolments_length', 5);
 
         $data = $this->make();
 
-        set_config('local_provisional_enrolments_onoff', 0);
+        set_config('local_temporary_enrolments_onoff', 0);
 
         $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
         $e = new enrol_manual_plugin();
@@ -636,14 +636,14 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
         $e = new enrol_manual_plugin();
         $e->enrol_user($enrol, $data['student']->id, $data['role']);
 
-        $expire = $DB->get_record('local_provisional_enrolments', array());
-        $length = $DB->get_record('config', array('name' => 'local_provisional_enrolments_length'));
+        $expire = $DB->get_record('local_temporary_enrolments', array());
+        $length = $DB->get_record('config', array('name' => 'local_temporary_enrolments_length'));
         $this->assertEquals($length->value, ($expire->timeend - $expire->timestart));
 
         $newlength = 100;
         update_length($newlength);
 
-        $expire = $DB->get_record('local_provisional_enrolments', array());
+        $expire = $DB->get_record('local_temporary_enrolments', array());
         $this->assertEquals($newlength, ($expire->timeend - $expire->timestart));
     }
 
@@ -682,10 +682,10 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
         $results = $sink->get_messages();
 
         $body = array('Dear Stu', 'access to '.$data['course']->fullname);
-        $this->email_has($results[0], $body, 'Temporary enrollment for '.$data['course']->fullname.' expired', 'student@');
+        $this->email_has($results[0], $body, 'Temporary enrolment for '.$data['course']->fullname.' expired', 'student@');
 
         // Expire email off.
-        set_config('local_provisional_enrolments_expire_onoff', 0);
+        set_config('local_temporary_enrolments_expire_onoff', 0);
         $sink = $this->redirectEmails();
         $e->unenrol_user($enrol, $data['student']->id);
         $e->enrol_user($enrol, $data['student']->id, $data['role']);
@@ -719,7 +719,7 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
 
         $data = $this->make();
 
-        set_config('local_provisional_enrolments_onoff', 0);
+        set_config('local_temporary_enrolments_onoff', 0);
 
         $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
         $e = new enrol_manual_plugin();
@@ -788,7 +788,7 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
 
         $data = $this->make();
 
-        set_config('local_provisional_enrolments_onoff', 0);
+        set_config('local_temporary_enrolments_onoff', 0);
 
         $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
         $selfenrol = $DB->get_record('enrol', array('enrol' => 'self', 'courseid' => $data['course']->id));
@@ -844,10 +844,10 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
         $this->assertEquals(1, count($results)); // Make sure it sent upgrade email and NOT expire email as well.
 
         $body = array('Dear Stu', 'access to '.$data['course']->fullname);
-        $this->email_has($results[0], $body, 'Temporary enrollment for '.$data['course']->fullname.' upgraded!', 'student@');
+        $this->email_has($results[0], $body, 'Temporary enrolment for '.$data['course']->fullname.' upgraded!', 'student@');
 
         // Upgrade email off.
-        set_config('local_provisional_enrolments_upgrade_onoff', 0);
+        set_config('local_temporary_enrolments_upgrade_onoff', 0);
         $sink = $this->redirectEmails();
         $e->enrol_user($enrol, $data['student']->id, $data['role']);
         $sink->close();
@@ -879,7 +879,7 @@ class local_provisional_enrolments_testcase extends advanced_testcase {
 
         $data = $this->make();
 
-        set_config('local_provisional_enrolments_onoff', 0);
+        set_config('local_temporary_enrolments_onoff', 0);
 
         $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
         $e = new enrol_manual_plugin();

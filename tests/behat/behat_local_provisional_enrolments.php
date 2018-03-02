@@ -19,7 +19,7 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 use Behat\Behat\Context\Step\Given as Given,
     Behat\Behat\Context\Step\Then as Then;
 
-class behat_local_provisional_enrolments extends behat_base {
+class behat_local_temporary_enrolments extends behat_base {
 
     /**
      * @Given /^I take a screenshot$/

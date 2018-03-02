@@ -17,15 +17,15 @@
 /**
  * Version details.
  *
- * @package    local_provisional_enrolments
+ * @package    local_temporary_enrolments
  * @copyright  2017 onwards Andrew Zito
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_provisional_enrolments;
+namespace local_temporary_enrolments;
 require_once($CFG->dirroot. '/lib/moodlelib.php');
 require_once($CFG->dirroot. '/enrol/manual/lib.php');
-require_once($CFG->dirroot. '/local/provisional_enrolments/lib.php');
+require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 require_once($CFG->dirroot. '/lib/accesslib.php');
 use stdClass;
 
@@ -34,8 +34,8 @@ defined('MOODLE_INTERNAL') || die();
 class observers {
 
     /**
-     * Actions to take upon a user being assigned the 'temporary_enrollment' role
-     * Most likely will be initial enrollment
+     * Actions to take upon a user being assigned the 'temporary_enrolment' role
+     * Most likely will be initial enrolment
      * Possibly could be role re-upping to reset expiration timer
      *
      * @param \core\event\role_assigned $event
@@ -44,10 +44,10 @@ class observers {
     public static function initialize($event) {
         global $DB, $CFG;
 
-        if ($CFG->local_provisional_enrolments_onoff) {
+        if ($CFG->local_temporary_enrolments_onoff) {
 
-            // Get temporary_enrollment role.
-            $role = $DB->get_record('role', array('shortname' => LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME));
+            // Get temporary_enrolment role.
+            $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
 
             if ($event->objectid == $role->id) {
                 
@@ -58,29 +58,29 @@ class observers {
                 } else {
 
                     // Send STUDENT initial email.
-                    if ($CFG->local_provisional_enrolments_studentinit_onoff) {
-                        send_provisional_enrolments_email($event, 'studentinit');
+                    if ($CFG->local_temporary_enrolments_studentinit_onoff) {
+                        send_temporary_enrolments_email($event, 'studentinit');
                     }
 
                     // Send TEACHER initial email.
-                    if ($CFG->local_provisional_enrolments_teacherinit_onoff) {
-                        send_provisional_enrolments_email($event, 'teacherinit', 'userid');
+                    if ($CFG->local_temporary_enrolments_teacherinit_onoff) {
+                        send_temporary_enrolments_email($event, 'teacherinit', 'userid');
                     }
 
                     // Set expiration time.
                     $insert = new stdClass();
                     $insert->roleassignid = $event->other['id'];
-                    $length = $CFG->local_provisional_enrolments_length;
+                    $length = $CFG->local_temporary_enrolments_length;
                     $insert->timeend = $event->timecreated + $length;
                     $insert->timestart = $event->timecreated;
-                    $DB->insert_record('local_provisional_enrolments', $insert);
+                    $DB->insert_record('local_temporary_enrolments', $insert);
                 }
             }
         }
     }
 
     /**
-     * Actions to be taken when a temporary_enrollment user is enrolled fully
+     * Actions to be taken when a temporary_enrolment user is enrolled fully
      *
      * @param \core\event\role_assigned $event
      * @return void
@@ -88,10 +88,10 @@ class observers {
     public static function upgrade($event) {
         global $DB, $CFG;
 
-        if ($CFG->local_provisional_enrolments_onoff) {
+        if ($CFG->local_temporary_enrolments_onoff) {
 
-            // Get temporary_enrollment role.
-            $role = $DB->get_record('role', array('shortname' => LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME));
+            // Get temporary_enrolment role.
+            $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
 
             // Does student have temporary role?
             $hasrole = $DB->record_exists('role_assignments', array('contextid' => $event->contextid, 'roleid' => $role->id, 'userid' => $event->relateduserid));
@@ -99,24 +99,24 @@ class observers {
             // If student has temp role AND the flatfile enrolment was of a different role.
             if ($event->objectid != $role->id && $hasrole) {
                 // Send upgrade email.
-                if ($CFG->local_provisional_enrolments_upgrade_onoff) {
-                    send_provisional_enrolments_email($event, 'upgrade');
+                if ($CFG->local_temporary_enrolments_upgrade_onoff) {
+                    send_temporary_enrolments_email($event, 'upgrade');
                 }
 
                 // Remove temp role and update the entry in our custom table.
                 $roleassignment = $DB->get_record('role_assignments', array('contextid' => $event->contextid, 'roleid' => $role->id, 'userid' => $event->relateduserid));
-                $expiration = $DB->get_record('local_provisional_enrolments', array('roleassignid' => $roleassignment->id));
+                $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $roleassignment->id));
                 $update = new stdClass();
                 $update->id = $expiration->id;
                 $update->upgraded = 1;
-                $DB->update_record('local_provisional_enrolments', $update);
+                $DB->update_record('local_temporary_enrolments', $update);
                 role_unassign($role->id, $event->relateduserid, $event->contextid);
             }
         }
     }
 
     /**
-     * Actions to be taken on 'temporary_enrollment' role unassignment
+     * Actions to be taken on 'temporary_enrolment' role unassignment
      *
      * @param \core\event\role_unassigned $event
      * @return void
@@ -124,18 +124,18 @@ class observers {
     public static function expire($event) {
         global $DB, $CFG;
 
-        if ($CFG->local_provisional_enrolments_onoff) {
+        if ($CFG->local_temporary_enrolments_onoff) {
 
-            // Get temporary_enrollment role.
-            $role = $DB->get_record('role', array('shortname' => LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME));
+            // Get temporary_enrolment role.
+            $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
 
             if ($event->objectid == $role->id) {
-                $expiration = $DB->get_record('local_provisional_enrolments', array('roleassignid' => $event->other['id']));
+                $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $event->other['id']));
                 if ($expiration) {
-                    if (!$expiration->upgraded) { // Check if the enrollment was removed by upgrade().
+                    if (!$expiration->upgraded) { // Check if the enrolment was removed by upgrade().
                         // Send expire email.
-                        if ($CFG->local_provisional_enrolments_expire_onoff) {
-                            send_provisional_enrolments_email($event, 'expire');
+                        if ($CFG->local_temporary_enrolments_expire_onoff) {
+                            send_temporary_enrolments_email($event, 'expire');
                         }
                     }
                 }
@@ -165,9 +165,9 @@ class observers {
         }
 
         // Remove entry from our custom table.
-        $expiration = $DB->get_record('local_provisional_enrolments', array('roleassignid' => $event->other['id']));
+        $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $event->other['id']));
         if ($expiration) {
-            $DB->delete_records('local_provisional_enrolments', array('id' => $expiration->id));
+            $DB->delete_records('local_temporary_enrolments', array('id' => $expiration->id));
         }
 
     }

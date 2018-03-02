@@ -17,31 +17,31 @@
 /**
  * Version details.
  *
- * @package    local_provisional_enrolments
+ * @package    local_temporary_enrolments
  * @copyright  2017 onwards Andrew Zito
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_provisional_enrolments\task;
-require_once($CFG->dirroot. '/local/provisional_enrolments/lib.php');
+namespace local_temporary_enrolments\task;
+require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 require_once($CFG->dirroot. '/lib/accesslib.php');
 use stdClass;
 
 class expire_task extends \core\task\scheduled_task {
 
     public function get_name() {
-        return get_string('expire_task', 'local_provisional_enrolments');
+        return get_string('expire_task', 'local_temporary_enrolments');
     }
 
     public function execute() {
         global $DB, $CFG;
 
-        if ($CFG->local_provisional_enrolments_onoff) {
+        if ($CFG->local_temporary_enrolments_onoff) {
 
-            // Get temporary_enrollment role.
-            $role = $DB->get_record('role', array('shortname' => LOCAL_PROVISIONAL_ENROLMENTS_SHORTNAME));
+            // Get temporary_enrolment role.
+            $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
 
-            $expirations = $DB->get_records('local_provisional_enrolments');
+            $expirations = $DB->get_records('local_temporary_enrolments');
             // Iterate through expiration entries in our custom table.
             foreach ($expirations as $expiration) {
                 // Check if expired.
@@ -51,9 +51,9 @@ class expire_task extends \core\task\scheduled_task {
                     if ($roleassignment) {
                         // Remove it.
                         role_unassign($role->id, $roleassignment->userid, $roleassignment->contextid);
-                        $DB->delete_records('local_provisional_enrolments', array('id' => $expiration->id));
+                        $DB->delete_records('local_temporary_enrolments', array('id' => $expiration->id));
                     } else { // If there isn't a role assignment, delete the extraneous custom table entry.
-                        $DB->delete_records('local_provisional_enrolments', array('id' => $expiration->id));
+                        $DB->delete_records('local_temporary_enrolments', array('id' => $expiration->id));
                     }
                 }
             }
