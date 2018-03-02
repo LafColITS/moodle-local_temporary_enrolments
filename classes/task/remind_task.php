@@ -18,7 +18,7 @@
  * Version details.
  *
  * @package    local_temporary_enrolments
- * @copyright  2017 onwards Andrew Zito
+ * @copyright  2018 onwards Lafayette College ITS
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
