@@ -41,7 +41,7 @@ class remind_task extends \core\task\scheduled_task {
         if ($CFG->local_temporary_enrolments_onoff) {
 
             // Get temporary_enrolment role id.
-            $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
+            $role = get_temp_role();
 
             // Iterate over temporary role assignments
             $roleassignments = $DB->get_records('role_assignments', array('roleid' => $role->id));

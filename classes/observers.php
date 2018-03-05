@@ -47,12 +47,12 @@ class observers {
         if ($CFG->local_temporary_enrolments_onoff) {
 
             // Get temporary_enrolment role.
-            $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
+            $role = get_temp_role();
 
             if ($event->objectid == $role->id) {
-                
+
                 $allroles = $DB->get_records('role_assignments', array('userid' => $event->relateduserid, 'contextid' => $event->contextid));
-                
+
                 if (count($allroles) > 1) {
                     role_unassign($role->id, $event->relateduserid, $event->contextid);
                 } else {
@@ -91,7 +91,7 @@ class observers {
         if ($CFG->local_temporary_enrolments_onoff) {
 
             // Get temporary_enrolment role.
-            $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
+            $role = get_temp_role();
 
             // Does student have temporary role?
             $hasrole = $DB->record_exists('role_assignments', array('contextid' => $event->contextid, 'roleid' => $role->id, 'userid' => $event->relateduserid));
@@ -127,7 +127,7 @@ class observers {
         if ($CFG->local_temporary_enrolments_onoff) {
 
             // Get temporary_enrolment role.
-            $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
+            $role = get_temp_role();
 
             if ($event->objectid == $role->id) {
                 $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $event->other['id']));

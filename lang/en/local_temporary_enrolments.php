@@ -49,6 +49,8 @@ $string['remind_freq_subdesc'] = 'Reminder emails are sent every ____ days';
 $string['remind_onoff_desc'] = 'Turn reminder email on/off';
 $string['remind_onoff_subdesc'] = 'Check the box to turn reminder emails on or off.';
 $string['remind_task'] = 'Send out temporary enrolment reminder emails';
+$string['rolename_desc'] = 'Temporary enrolment role';
+$string['rolename_subdesc'] = 'The role which indicates that an enrolment is temporary. Only applies if you turn off the option above.';
 $string['studentinit_content_default'] = '{SUBJECT: Temporary enrolment granted for {COURSE}}
 
 Dear {STUDENTFIRST},
@@ -88,3 +90,5 @@ $string['upgrade_content_desc'] = 'Upgrade email';
 $string['upgrade_content_subdesc'] = 'Emailed to student if they are enrolled fully (upgrading their enrolment to permanent status).';
 $string['upgrade_onoff_desc'] = 'Turn upgrade email on/off';
 $string['upgrade_onoff_subdesc'] = 'Check the box to turn upgrade email on/off. Does not affect actual enrolment.';
+$string['usecustom_desc'] = 'Create and use custom role';
+$string['usecustom_subdesc'] = 'Use a custom role packaged with this plugin to mark temporary enrolment, and create that role if it does not exist. The role is called Temporarily Enrolled. If you want to use another role to mark temporary enrolment, turn this option off and select an existing role from the select menu below.';

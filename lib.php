@@ -26,8 +26,8 @@ require_once($CFG->dirroot. '/lib/accesslib.php');
 require_once($CFG->dirroot. '/admin/roles/classes/define_role_table_advanced.php');
 require_once($CFG->dirroot. '/lib/moodlelib.php');
 
-define("LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME", "temporary_enrolment");
-define("LOCAL_TEMPORARY_ENROLMENTS_FULLNAME", "Temporarily Enrolled");
+define("LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME", "temporary_enrolment");
+define("LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_FULLNAME", "Temporarily Enrolled");
 
 /**
  * Send an email (init, remind, upgrade, or expire).
@@ -103,10 +103,18 @@ function send_temporary_enrolments_email($data, $which, $sendto='relateduserid')
 function custom_role_exists() {
     global $DB;
 
-    if ($DB->record_exists('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME))) {
+    if ($DB->record_exists('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME))) {
         return true;
     }
     return false;
+}
+
+function get_temp_role() {
+  global $DB;
+
+  $shortname = $DB->get_record('config', array('name' => 'local_temporary_enrolments_rolename'))->value;
+  return $DB->get_record('role', array('shortname' => $shortname));
+
 }
 
 /**
@@ -119,8 +127,8 @@ function create_custom_role() {
 
     // Create the role entry.
     $description = "A role for temporary course enrolment, used by the Temporary Enrolments plugin.";
-    create_role(LOCAL_TEMPORARY_ENROLMENTS_FULLNAME, LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME, $description, 'student');
-    $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
+    // create_role(LOCAL_TEMPORARY_ENROLMENTS_FULLNAME, LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME, $description, 'student');
+    $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME));
 
     // Set context levels (50 only).
     set_role_contextlevels($role->id, array(CONTEXT_COURSE));

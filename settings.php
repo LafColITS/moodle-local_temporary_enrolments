@@ -22,12 +22,24 @@ if ($hassiteconfig) {
 
     // Create role if needed.
     $onoff = $DB->get_record('config', array('name' => 'local_temporary_enrolments_onoff'));
-    if ($onoff) {
-        if ($onoff->value) {
+    $usecustom = $DB->get_record('config', array('name' => 'local_temporary_enrolments_usecustom'));
+    if ($onoff && $usecustom) {
+        if ($onoff->value && $usecustom->value) {
             if (!custom_role_exists()) {
                 create_custom_role();
             }
         }
+    }
+
+    // Force role to be custom role if that option is enabled.
+    if ($usecustom) {
+      if ($usecustom->value) {
+        $record = $DB->get_record('config', array('name' => 'local_temporary_enrolments_rolename'));
+        $update = new stdClass();
+        $update->id = $record->id;
+        $update->value = LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME;
+        $DB->update_record('config', $update);
+      }
     }
 
     // Update reminder email frequency in DB if needed.
@@ -50,13 +62,33 @@ if ($hassiteconfig) {
     }
 
     // Begin the actual settings.
-
     $settings = new admin_settingpage('local_temporary_enrolments', get_string('pluginname', 'local_temporary_enrolments'));
 
     $settings->add(new admin_setting_configcheckbox('local_temporary_enrolments_onoff',
         get_string('onoff_desc', 'local_temporary_enrolments'),
         get_string('onoff_subdesc', 'local_temporary_enrolments'),
         0));
+
+    $settings->add(new admin_setting_configcheckbox('local_temporary_enrolments_usecustom',
+        get_string('usecustom_desc', 'local_temporary_enrolments'),
+        get_string('usecustom_subdesc', 'local_temporary_enrolments'),
+        1));
+
+    $rolenames = $DB->get_records_menu('role', null, '', 'id,shortname');
+    $options = array();
+    foreach ($rolenames as $id => $shortname) {
+        $options[$shortname] = $shortname;
+    }
+    $settings->add(new admin_setting_configselect('local_temporary_enrolments_rolename',
+        get_string('rolename_desc', 'local_temporary_enrolments'),
+        get_string('rolename_subdesc', 'local_temporary_enrolments'),
+        0,
+        $options));
+
+    // $settings->add(new admin_setting_configcheckbox('local_temporary_enrolments_onoff',
+    //     get_string('onoff_desc', 'local_temporary_enrolments'),
+    //     get_string('onoff_subdesc', 'local_temporary_enrolments'),
+    //     0));
 
     $settings->add(new admin_setting_configduration('local_temporary_enrolments_length',
         get_string('length_desc', 'local_temporary_enrolments'),
