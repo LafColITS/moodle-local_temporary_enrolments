@@ -27,6 +27,10 @@ require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 require_once($CFG->dirroot. '/lib/accesslib.php');
 use stdClass;
 
+/**
+ * Scheduled task (cron task) that checks for expired Temporary role assignments
+ * and removes them.
+ */
 class expire_task extends \core\task\scheduled_task {
 
     public function get_name() {
@@ -41,13 +45,13 @@ class expire_task extends \core\task\scheduled_task {
             // Get temporary_enrolment role.
             $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
 
+            // Iterate through entries in our custom table.
             $expirations = $DB->get_records('local_temporary_enrolments');
-            // Iterate through expiration entries in our custom table.
             foreach ($expirations as $expiration) {
                 // Check if expired.
                 if ($expiration->timeend <= time()) {
+                  // Check if there is a corresponding role assignment.
                     $roleassignment = $DB->get_record('role_assignments', array('id' => $expiration->roleassignid));
-                    // Check if there is a corresponding role assignment.
                     if ($roleassignment) {
                         // Remove it.
                         role_unassign($role->id, $roleassignment->userid, $roleassignment->contextid);
