@@ -4,21 +4,21 @@ Feature: Temporary Enrolments
   As an admin
   I need to make a test course
 
-  @javascript
-  Scenario: Check that default settings are displayed
-    When I log in as "admin"
-    And I am on site homepage
-    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
-    Then the following fields match these values:
-      | s__local_temporary_enrolments_length[v]   | 2     |
-      | s__local_temporary_enrolments_length[u]   | weeks |
-      | s__local_temporary_enrolments_remind_freq | 2     |
-    And "weeks" "option" should be visible
-    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_studentinit_content" "css_element"
-    And I should see "Dear {TEACHER}" in the "#id_s__local_temporary_enrolments_teacherinit_content" "css_element"
-    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_remind_content" "css_element"
-    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_expire_content" "css_element"
-    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_upgrade_content" "css_element"
+# @javascript
+# Scenario: Check that default settings are displayed
+#   When I log in as "admin"
+#   And I am on site homepage
+#   And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+#   Then the following fields match these values:
+#     | s__local_temporary_enrolments_length[v]   | 2     |
+#     | s__local_temporary_enrolments_length[u]   | weeks |
+#     | s__local_temporary_enrolments_remind_freq | 2     |
+#   And "weeks" "option" should be visible
+#   And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_studentinit_content" "css_element"
+#   And I should see "Dear {TEACHER}" in the "#id_s__local_temporary_enrolments_teacherinit_content" "css_element"
+#   And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_remind_content" "css_element"
+#   And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_expire_content" "css_element"
+#   And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_upgrade_content" "css_element"
 
   @javascript
   Scenario: Testing temporary enrolments plugin upgrade functionality

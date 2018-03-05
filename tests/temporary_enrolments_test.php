@@ -84,7 +84,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         // Role should exist. Duh.
         $this->assertEquals(true, custom_role_exists());
 
-        $temprole = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
+        $temprole = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME));
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
 
         // Only context level should be 50 (course).

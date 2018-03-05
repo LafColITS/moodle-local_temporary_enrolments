@@ -36,9 +36,11 @@ if ($hassiteconfig) {
       if ($usecustom->value) {
         $record = $DB->get_record('config', array('name' => 'local_temporary_enrolments_rolename'));
         $update = new stdClass();
-        $update->id = $record->id;
-        $update->value = LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME;
-        $DB->update_record('config', $update);
+        if ($record) {
+          $update->id = $record->id;
+          $update->value = LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME;
+          $DB->update_record('config', $update);
+        }
       }
     }
 

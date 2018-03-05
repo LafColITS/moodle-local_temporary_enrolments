@@ -112,9 +112,10 @@ function custom_role_exists() {
 function get_temp_role() {
   global $DB;
 
-  $shortname = $DB->get_record('config', array('name' => 'local_temporary_enrolments_rolename'))->value;
-  return $DB->get_record('role', array('shortname' => $shortname));
-
+  $shortname = $DB->get_record('config', array('name' => 'local_temporary_enrolments_rolename'));
+  if ($shortname) {
+    return $DB->get_record('role', array('shortname' => $shortname));
+  }
 }
 
 /**
@@ -127,7 +128,7 @@ function create_custom_role() {
 
     // Create the role entry.
     $description = "A role for temporary course enrolment, used by the Temporary Enrolments plugin.";
-    // create_role(LOCAL_TEMPORARY_ENROLMENTS_FULLNAME, LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME, $description, 'student');
+    create_role(LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_FULLNAME, LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME, $description, 'student');
     $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME));
 
     // Set context levels (50 only).
