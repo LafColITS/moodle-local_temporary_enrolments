@@ -89,7 +89,7 @@ function send_temporary_enrolments_email($data, $which, $sendto='relateduserid')
     // Build final email body and subject and to address.
     $subject = preg_replace($patterns, $replaces, $subject[1]);
     $message = preg_replace($patterns, $replaces, $message);
-    $to = $DB->get_record('user', array('id' => $data->{$toid}));
+    $to = $DB->get_record('user', array('id' => $data->{$sendto}));
 
     // Send email.
     email_to_user($to, $from, $subject, $message);

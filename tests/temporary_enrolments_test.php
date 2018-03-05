@@ -69,7 +69,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $this->assertContains('Auto-Submitted: auto-generated', $email->header);
         $this->assertContains('noreply@', $email->from);
         foreach ($body as $s) {
-            $this->assertContains($s, $email->body);
+            $this->assertContains($s, preg_replace('/\s*\n\s*/', ' ', $email->body));
         }
         $this->assertContains($subject, $email->subject);
         $this->assertContains($to, $email->to);
@@ -79,10 +79,10 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $this->resetAfterTest();
         global $DB;
         set_config('local_temporary_enrolments_onoff', true);
-        create_temp_role();
+        create_custom_role();
 
         // Role should exist. Duh.
-        $this->assertEquals(true, temp_role_exists());
+        $this->assertEquals(true, custom_role_exists());
 
         $temprole = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
@@ -191,7 +191,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $se = new enrol_self_plugin();
         $context = \context_course::instance($data['course']->id);
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
-    
+
         $se->enrol_user($selfenrol, $data['student']->id, $studentrole->id);
         $roles = $DB->get_records('role_assignments');
         $this->assertEquals(1, count($roles));

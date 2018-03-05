@@ -26,6 +26,9 @@ namespace local_temporary_enrolments\task;
 require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 use stdClass;
 
+/**
+ * Scheduled task (cron task) that sends out reminder emails.
+ */
 class remind_task extends \core\task\scheduled_task {
 
     public function get_name() {
@@ -40,6 +43,7 @@ class remind_task extends \core\task\scheduled_task {
             // Get temporary_enrolment role id.
             $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_SHORTNAME));
 
+            // Iterate over temporary role assignments
             $roleassignments = $DB->get_records('role_assignments', array('roleid' => $role->id));
             foreach ($roleassignments as $roleassignment) {
                 // Send reminder email.
