@@ -26,8 +26,8 @@ require_once($CFG->dirroot. '/lib/accesslib.php');
 require_once($CFG->dirroot. '/admin/roles/classes/define_role_table_advanced.php');
 require_once($CFG->dirroot. '/lib/moodlelib.php');
 
-define("LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME", "temporary_enrolment");
-define("LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_FULLNAME", "Temporarily Enrolled");
+define("LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME", "temporary_enrolment");
+define("LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_FULLNAME", "Temporarily Enrolled");
 
 /**
  * Send an email (init, remind, upgrade, or expire).
@@ -100,10 +100,10 @@ function send_temporary_enrolments_email($data, $which, $sendto='relateduserid')
  *
  * @return boolean exists or not
  */
-function custom_role_exists() {
+function builtin_role_exists() {
     global $DB;
 
-    if ($DB->record_exists('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME))) {
+    if ($DB->record_exists('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME))) {
         return true;
     }
     return false;
@@ -114,7 +114,7 @@ function get_temp_role() {
 
   $shortname = $DB->get_record('config', array('name' => 'local_temporary_enrolments_rolename'));
   if ($shortname) {
-    return $DB->get_record('role', array('shortname' => $shortname));
+    return $DB->get_record('role', array('shortname' => $shortname->value));
   }
 }
 
@@ -123,13 +123,13 @@ function get_temp_role() {
  *
  * @return void
  */
-function create_custom_role() {
+function create_builtin_role() {
     global $DB;
 
     // Create the role entry.
     $description = "A role for temporary course enrolment, used by the Temporary Enrolments plugin.";
-    create_role(LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_FULLNAME, LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME, $description, 'student');
-    $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME));
+    create_role(LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_FULLNAME, LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME, $description, 'student');
+    $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME));
 
     // Set context levels (50 only).
     set_role_contextlevels($role->id, array(CONTEXT_COURSE));
@@ -141,6 +141,8 @@ function create_custom_role() {
     foreach ($capabilities as $name => $val) {
         assign_capability($name, $val, $role->id, $context->id);
     }
+
+    return $role;
 }
 
 /**

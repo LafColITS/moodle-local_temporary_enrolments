@@ -41,7 +41,6 @@ class expire_task extends \core\task\scheduled_task {
         global $DB, $CFG;
 
         if ($CFG->local_temporary_enrolments_onoff) {
-    echo temp_role_shortname();
 
             // Get temporary_enrolment role.
             $role = get_temp_role();

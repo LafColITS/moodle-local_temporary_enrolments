@@ -40,24 +40,26 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
      */
     public function make() {
         set_config('local_temporary_enrolments_onoff', 1);
+        $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role'));
+        set_config('local_temporary_enrolments_rolename', 'test_temporary_role');
         unset_config('noemailever');
 
         $teacher = $this->getDataGenerator()->create_user(array(
-        'username'  => 'teacher',
-        'email'     => 'teacher@example.com',
-        'firstname' => 'Tea',
-        'lastname'  => 'Cher',
+          'username'  => 'teacher',
+          'email'     => 'teacher@example.com',
+          'firstname' => 'Tea',
+          'lastname'  => 'Cher',
         ));
         $student = $this->getDataGenerator()->create_user(array(
-            'username'  => 'student',
-            'email'     => 'student@example.com',
-            'firstname' => 'Stu',
-            'lastname'  => 'Dent',
+          'username'  => 'student',
+          'email'     => 'student@example.com',
+          'firstname' => 'Stu',
+          'lastname'  => 'Dent',
         ));
         $this->setUser($teacher);
         $course = $this->getDataGenerator()->create_course(array('shortname' => 'testcourse'));
-        $role = $this->getDataGenerator()->create_role(array('shortname' => 'temporary_enrolment'));
-        return array('teacher' => $teacher, 'student' => $student, 'course' => $course, 'role' => $role);
+        $role = get_temp_role();
+        return array('teacher' => $teacher, 'student' => $student, 'course' => $course, 'role' => $role->id);
     }
 
     /**
@@ -75,16 +77,21 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $this->assertContains($to, $email->to);
     }
 
+    /**
+     * Does the plugin correctly create the built in Temporary role?
+     *
+     * @return void
+     */
     public function test_role_creation() {
         $this->resetAfterTest();
         global $DB;
         set_config('local_temporary_enrolments_onoff', true);
-        create_custom_role();
+        create_builtin_role();
 
         // Role should exist. Duh.
-        $this->assertEquals(true, custom_role_exists());
+        $this->assertEquals(true, builtin_role_exists());
 
-        $temprole = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME));
+        $temprole = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME));
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
 
         // Only context level should be 50 (course).

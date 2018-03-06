@@ -65,4 +65,3 @@ Tests to run with Moodle's built in. [PHPUnit](https://docs.moodle.org/dev/PHPUn
 #### behat
 
 - `temporary_enrolments.feature` : a behat feature test. [Behat](http://behat.org/en/latest/ "Behat") is a third-party PHP testing framework
-- `behat_local_temporary_enrolments.php` : custom behat step for taking screenshots.

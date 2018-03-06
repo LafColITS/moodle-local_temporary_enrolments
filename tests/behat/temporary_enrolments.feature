@@ -4,21 +4,68 @@ Feature: Temporary Enrolments
   As an admin
   I need to make a test course
 
-# @javascript
-# Scenario: Check that default settings are displayed
-#   When I log in as "admin"
-#   And I am on site homepage
-#   And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
-#   Then the following fields match these values:
-#     | s__local_temporary_enrolments_length[v]   | 2     |
-#     | s__local_temporary_enrolments_length[u]   | weeks |
-#     | s__local_temporary_enrolments_remind_freq | 2     |
-#   And "weeks" "option" should be visible
-#   And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_studentinit_content" "css_element"
-#   And I should see "Dear {TEACHER}" in the "#id_s__local_temporary_enrolments_teacherinit_content" "css_element"
-#   And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_remind_content" "css_element"
-#   And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_expire_content" "css_element"
-#   And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_upgrade_content" "css_element"
+  @javascript
+  Scenario: Check that default settings are displayed
+    When I log in as "admin"
+    And I am on site homepage
+    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    Then the following fields match these values:
+     | s__local_temporary_enrolments_onoff           | 0     |
+     | s__local_temporary_enrolments_usebuiltinrole  | 1     |
+     | s__local_temporary_enrolments_length[v]       | 2     |
+     | s__local_temporary_enrolments_length[u]       | weeks |
+     | s__local_temporary_enrolments_remind_freq     | 2     |
+    And "weeks" "option" should be visible
+    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_studentinit_content" "css_element"
+    And I should see "Dear {TEACHER}" in the "#id_s__local_temporary_enrolments_teacherinit_content" "css_element"
+    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_remind_content" "css_element"
+    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_expire_content" "css_element"
+    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_upgrade_content" "css_element"
+
+  @javascript
+  Scenario: Check that the built in role is created if the plugin is on and the usebuiltinrole option is on
+    When I log in as "admin"
+    And I am on site homepage
+    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And the following fields match these values:
+      | s__local_temporary_enrolments_onoff           | 0   |
+      | s__local_temporary_enrolments_usebuiltinrole  | 1   |
+    And I click on "s__local_temporary_enrolments_onoff" "checkbox"
+    And I press "Save changes"
+    Then the following fields match these values:
+      | s__local_temporary_enrolments_onoff           | 1   |
+      | s__local_temporary_enrolments_usebuiltinrole  | 1   |
+    When I navigate to "Define roles" node in "Site administration>Users>Permissions"
+    Then I should see "Temporarily Enrolled"
+
+  @javascript
+  Scenario: Check that the built in role is not created if the usebuiltinrole option is off
+    When I log in as "admin"
+    And I am on site homepage
+    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And the following fields match these values:
+      | s__local_temporary_enrolments_onoff           | 0   |
+      | s__local_temporary_enrolments_usebuiltinrole  | 1   |
+    And I click on "s__local_temporary_enrolments_onoff" "checkbox"
+    And I click on "s__local_temporary_enrolments_usebuiltinrole" "checkbox"
+    And I press "Save changes"
+    Then the following fields match these values:
+      | s__local_temporary_enrolments_onoff           | 1   |
+      | s__local_temporary_enrolments_usebuiltinrole  | 0   |
+    When I navigate to "Define roles" node in "Site administration>Users>Permissions"
+    Then I should not see "Temporarily Enrolled"
+
+  @javascript
+  Scenario: Check that the built in role is not created if the plugin is not turned on
+    When I log in as "admin"
+    And I am on site homepage
+    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And the following fields match these values:
+      | s__local_temporary_enrolments_onoff           | 0   |
+      | s__local_temporary_enrolments_usebuiltinrole  | 1   |
+    And I press "Save changes"
+    When I navigate to "Define roles" node in "Site administration>Users>Permissions"
+    Then I should not see "Temporarily Enrolled"
 
   @javascript
   Scenario: Testing temporary enrolments plugin upgrade functionality

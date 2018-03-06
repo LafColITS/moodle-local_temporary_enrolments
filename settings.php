@@ -22,23 +22,23 @@ if ($hassiteconfig) {
 
     // Create role if needed.
     $onoff = $DB->get_record('config', array('name' => 'local_temporary_enrolments_onoff'));
-    $usecustom = $DB->get_record('config', array('name' => 'local_temporary_enrolments_usecustom'));
-    if ($onoff && $usecustom) {
-        if ($onoff->value && $usecustom->value) {
-            if (!custom_role_exists()) {
-                create_custom_role();
+    $usebuiltinrole = $DB->get_record('config', array('name' => 'local_temporary_enrolments_usebuiltinrole'));
+    if ($onoff && $usebuiltinrole) {
+        if ($onoff->value && $usebuiltinrole->value) {
+            if (!builtin_role_exists()) {
+                create_builtin_role();
             }
         }
     }
 
     // Force role to be custom role if that option is enabled.
-    if ($usecustom) {
-      if ($usecustom->value) {
+    if ($usebuiltinrole) {
+      if ($usebuiltinrole->value) {
         $record = $DB->get_record('config', array('name' => 'local_temporary_enrolments_rolename'));
         $update = new stdClass();
         if ($record) {
           $update->id = $record->id;
-          $update->value = LOCAL_TEMPORARY_ENROLMENTS_CUSTOM_SHORTNAME;
+          $update->value = LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME;
           $DB->update_record('config', $update);
         }
       }
@@ -71,9 +71,9 @@ if ($hassiteconfig) {
         get_string('onoff_subdesc', 'local_temporary_enrolments'),
         0));
 
-    $settings->add(new admin_setting_configcheckbox('local_temporary_enrolments_usecustom',
-        get_string('usecustom_desc', 'local_temporary_enrolments'),
-        get_string('usecustom_subdesc', 'local_temporary_enrolments'),
+    $settings->add(new admin_setting_configcheckbox('local_temporary_enrolments_usebuiltinrole',
+        get_string('usebuiltinrole_desc', 'local_temporary_enrolments'),
+        get_string('usebuiltinrole_subdesc', 'local_temporary_enrolments'),
         1));
 
     $rolenames = $DB->get_records_menu('role', null, '', 'id,shortname');

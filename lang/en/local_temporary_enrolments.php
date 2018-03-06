@@ -90,5 +90,5 @@ $string['upgrade_content_desc'] = 'Upgrade email';
 $string['upgrade_content_subdesc'] = 'Emailed to student if they are enrolled fully (upgrading their enrolment to permanent status).';
 $string['upgrade_onoff_desc'] = 'Turn upgrade email on/off';
 $string['upgrade_onoff_subdesc'] = 'Check the box to turn upgrade email on/off. Does not affect actual enrolment.';
-$string['usecustom_desc'] = 'Create and use custom role';
-$string['usecustom_subdesc'] = 'Use a custom role packaged with this plugin to mark temporary enrolment, and create that role if it does not exist. The role is called Temporarily Enrolled. If you want to use another role to mark temporary enrolment, turn this option off and select an existing role from the select menu below.';
+$string['usebuiltinrole_desc'] = 'Create and use custom role';
+$string['usebuiltinrole_subdesc'] = 'Use a custom role packaged with this plugin to mark temporary enrolment, and create that role if it does not exist. The role is called Temporarily Enrolled. If you want to use another role to mark temporary enrolment, turn this option off and select an existing role from the select menu below.';
