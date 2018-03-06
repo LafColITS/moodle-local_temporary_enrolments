@@ -40,8 +40,8 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
      */
     public function make() {
         set_config('local_temporary_enrolments_onoff', 1);
-        $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role'));
-        set_config('local_temporary_enrolments_rolename', 'test_temporary_role');
+        $test_role = $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role'));
+        set_config('local_temporary_enrolments_roleid', $test_role->id);
         unset_config('noemailever');
 
         $teacher = $this->getDataGenerator()->create_user(array(

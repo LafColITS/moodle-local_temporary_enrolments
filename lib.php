@@ -112,9 +112,9 @@ function builtin_role_exists() {
 function get_temp_role() {
   global $DB;
 
-  $shortname = $DB->get_record('config', array('name' => 'local_temporary_enrolments_rolename'));
-  if ($shortname) {
-    return $DB->get_record('role', array('shortname' => $shortname->value));
+  $id = $DB->get_record('config', array('name' => 'local_temporary_enrolments_roleid'));
+  if ($id) {
+    return $DB->get_record('role', array('id' => $id->value));
   }
 }
 

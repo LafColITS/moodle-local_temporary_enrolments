@@ -49,8 +49,8 @@ $string['remind_freq_subdesc'] = 'Reminder emails are sent every ____ days';
 $string['remind_onoff_desc'] = 'Turn reminder email on/off';
 $string['remind_onoff_subdesc'] = 'Check the box to turn reminder emails on or off.';
 $string['remind_task'] = 'Send out temporary enrolment reminder emails';
-$string['rolename_desc'] = 'Temporary enrolment role';
-$string['rolename_subdesc'] = 'The role which indicates that an enrolment is temporary. Only applies if you turn off the option above.';
+$string['roleid_desc'] = 'Temporary enrolment role';
+$string['roleid_subdesc'] = 'The role which indicates that an enrolment is temporary. Only applies if you turn off the option above.';
 $string['studentinit_content_default'] = '{SUBJECT: Temporary enrolment granted for {COURSE}}
 
 Dear {STUDENTFIRST},
