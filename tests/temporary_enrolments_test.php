@@ -78,42 +78,6 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
     }
 
     /**
-     * Does the plugin correctly create the built in Temporary role?
-     *
-     * @return void
-     */
-    public function test_role_creation() {
-        $this->resetAfterTest();
-        global $DB;
-        set_config('local_temporary_enrolments_onoff', true);
-        create_builtin_role();
-
-        // Role should exist. Duh.
-        $this->assertEquals(true, builtin_role_exists());
-
-        $temprole = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME));
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
-
-        // Only context level should be 50 (course).
-        $contextlevels = $DB->get_records('role_context_levels', array('roleid' => $temprole->id));
-        $this->assertEquals(1, count($contextlevels));
-        $this->assertEquals(CONTEXT_COURSE, $contextlevels[array_keys($contextlevels)[0]]->contextlevel);
-
-        // Get temporary role capabilities and student role capabilities from DB.
-        $tempcapabilities = $DB->get_records('role_capabilities', array('roleid' => $temprole->id));
-        $studentcapabilities = $DB->get_records('role_capabilities', array('roleid' => $studentrole->id));
-        // Grab just the 'capability' and 'permission' properties of each DB object.
-        $tempcapabilities = array_map(function($o) { return array($o->capability, $o->permission); }, $tempcapabilities);
-        $studentcapabilities = array_map(function($o) { return array($o->capability, $o->permission); }, $studentcapabilities);
-        // Sort alphabetically by 'capability' (which is now index 0) (also conveniently makes top-level indexes equal).
-        usort($tempcapabilities, function($a, $b) { return strcmp($a[0], $b[0]); });
-        usort($studentcapabilities, function($a, $b) { return strcmp($a[0], $b[0]); });
-
-        // Capabilities should be the same.
-        $this->assertEquals($tempcapabilities, $studentcapabilities);
-    }
-
-    /**
      * Does initialize() insert an expiration entry into our custom table?
      *
      * @return void

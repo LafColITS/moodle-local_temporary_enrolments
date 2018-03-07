@@ -20,30 +20,6 @@ require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 if ($hassiteconfig) {
     global $DB, $CFG;
 
-    // Create role if needed.
-    $onoff = $DB->get_record('config', array('name' => 'local_temporary_enrolments_onoff'));
-    $usebuiltinrole = $DB->get_record('config', array('name' => 'local_temporary_enrolments_usebuiltinrole'));
-    if ($onoff && $usebuiltinrole) {
-        if ($onoff->value && $usebuiltinrole->value) {
-            if (!builtin_role_exists()) {
-                create_builtin_role();
-            }
-        }
-    }
-
-    // Force role to be builtin role if that option is enabled.
-    if ($usebuiltinrole) {
-      if ($usebuiltinrole->value) {
-        $record = $DB->get_record('config', array('name' => 'local_temporary_enrolments_roleid'));
-        $update = new stdClass();
-        if ($record) {
-          $update->id = $record->id;
-          $update->value = LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME;
-          $DB->update_record('config', $update);
-        }
-      }
-    }
-
     // Update reminder email frequency in DB if needed.
     $remindfreq = $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq'));
     if ($remindfreq) { // In case it hasn't been set yet.
