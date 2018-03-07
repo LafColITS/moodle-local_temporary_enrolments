@@ -95,20 +95,6 @@ function send_temporary_enrolments_email($data, $which, $sendto='relateduserid')
     email_to_user($to, $from, $subject, $message);
 }
 
-/**
- * Check if temporary enrolment role exists
- *
- * @return boolean exists or not
- */
-function builtin_role_exists() {
-    global $DB;
-
-    if ($DB->record_exists('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME))) {
-        return true;
-    }
-    return false;
-}
-
 function get_temp_role() {
   global $DB;
 
@@ -116,33 +102,6 @@ function get_temp_role() {
   if ($id) {
     return $DB->get_record('role', array('id' => $id->value));
   }
-}
-
-/**
- * Create temporary_enrolment role
- *
- * @return void
- */
-function create_builtin_role() {
-    global $DB;
-
-    // Create the role entry.
-    $description = "A role for temporary course enrolment, used by the Temporary Enrolments plugin.";
-    create_role(LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_FULLNAME, LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME, $description, 'student');
-    $role = $DB->get_record('role', array('shortname' => LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME));
-
-    // Set context levels (50 only).
-    set_role_contextlevels($role->id, array(CONTEXT_COURSE));
-
-    $context = context_system::instance();
-
-    // Loop through student capabilities and assign them to temporary_enrolment.
-    $capabilities = get_default_capabilities('student');
-    foreach ($capabilities as $name => $val) {
-        assign_capability($name, $val, $role->id, $context->id);
-    }
-
-    return $role;
 }
 
 /**
