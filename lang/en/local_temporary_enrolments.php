@@ -22,6 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['existingassignments_desc'] = 'Manage existing role assignments?';
+$string['existingassignments_subdesc'] = 'If the role selected above is already assigned to some users: Do you want those role assignments to become temporary, and be brought under the management of this plugin?';
+$string['existingassignments_email_desc'] = 'Send emails for pre-existing assignments?';
+$string['existingassignments_email_subdesc'] = 'If the role selected above is already assigned to some users: Do you want the plugin to send initial explanatory emails for those pre-existing role assignments? Only applies of you checked yes for the option to manage existing role assignments.';
+$string['existingassignments_start_desc'] = 'Existing role assignment start time';
+$string['existingassignments_start_subdesc'] = 'If the role selected above is already assigned to some users: Do you want the duration of the temporary enrolment for those pre-existing role assignments to start from the creation of the role assignment, or from right now? Only applies of you checked yes for the option to manage existing role assignments.';
 $string['expire_content_default'] = '{SUBJECT: Temporary enrolment for {COURSE} expired}
 
 Dear {STUDENTFIRST},
@@ -90,5 +96,3 @@ $string['upgrade_content_desc'] = 'Upgrade email';
 $string['upgrade_content_subdesc'] = 'Emailed to student if they are enrolled fully (upgrading their enrolment to permanent status).';
 $string['upgrade_onoff_desc'] = 'Turn upgrade email on/off';
 $string['upgrade_onoff_subdesc'] = 'Check the box to turn upgrade email on/off. Does not affect actual enrolment.';
-$string['usebuiltinrole_desc'] = 'Create and use custom role';
-$string['usebuiltinrole_subdesc'] = 'Use a custom role packaged with this plugin to mark temporary enrolment, and create that role if it does not exist. The role is called Temporarily Enrolled. If you want to use another role to mark temporary enrolment, turn this option off and select an existing role from the select menu below.';

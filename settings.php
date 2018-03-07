@@ -71,21 +71,7 @@ if ($hassiteconfig) {
         get_string('onoff_subdesc', 'local_temporary_enrolments'),
         0));
 
-    $settings->add(new admin_setting_configcheckbox('local_temporary_enrolments_usebuiltinrole',
-        get_string('usebuiltinrole_desc', 'local_temporary_enrolments'),
-        get_string('usebuiltinrole_subdesc', 'local_temporary_enrolments'),
-        1));
-
-    $roles = $DB->get_records('role');
-    $options = array();
-    foreach ($roles as $role) {
-      $assignments = $DB->count_records('role_assignments', array('roleid' => $role->id));
-      echo "<pre>".$role->shortname.$assignments."</pre>";
-      if ($assignments == 0) {
-        $options[$role->id] = $role->shortname;
-      }
-    }
-
+    $options = $DB->get_records_menu('role', null, '', 'id,shortname');
     $settings->add(new admin_setting_configselect('local_temporary_enrolments_roleid',
         get_string('roleid_desc', 'local_temporary_enrolments'),
         get_string('roleid_subdesc', 'local_temporary_enrolments'),
@@ -93,23 +79,23 @@ if ($hassiteconfig) {
         $options));
 
     $settings->add(new admin_setting_configcheckbox('local_temporary_enrolments_existingassignments',
-        "Treat existing role assignments as temporary?",
-        "Whether or not to treat pre-existing assignments of the current Temporary role as actually temporary and bring them under plugin management, or leave them be.",
+        get_string('existingassignments_desc', 'local_temporary_enrolments'),
+        get_string('existingassignments_subdesc', 'local_temporary_enrolments'),
+        1));
+
+    $settings->add(new admin_setting_configcheckbox('local_temporary_enrolments_existingassignments_email',
+        get_string('existingassignments_email_desc', 'local_temporary_enrolments'),
+        get_string('existingassignments_email_subdesc', 'local_temporary_enrolments'),
         0));
 
     $settings->add(new admin_setting_configselect('local_temporary_enrolments_existingassignments_start',
-        "For pre-existing assignments, start temporary duration from assignments start or from current time?",
-        "Whether to count pre-existing assignments of the current Temporary role as having started at their initiation times, or as having started now, for expiration and reminder purposes.",
+        get_string('existingassignments_start_desc', 'local_temporary_enrolments'),
+        get_string('existingassignments_start_subdesc', 'local_temporary_enrolments'),
         1,
         array(
           0 => 'From assignment start time',
           1 => 'From right now',
         )));
-
-    $settings->add(new admin_setting_configcheckbox('local_temporary_enrolments_existingassignments_email',
-        "Send out emails on existing role assignments?",
-        "Whether or not to send out initialization emails for role assignments which match the temporary marker role, but existed before the plugin was enabled or before the role settings was changed.",
-        0));
 
     $settings->add(new admin_setting_configduration('local_temporary_enrolments_length',
         get_string('length_desc', 'local_temporary_enrolments'),

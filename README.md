@@ -2,26 +2,42 @@
 
 ## Introduction
 
-A Moodle module to manage temporary/provisional course site access for waitlisted or unregistered students.
+A Moodle plugin to manage temporary/provisional course site access for wait-listed or unregistered students.
 
-This plugin creates a new role "Temporarily Enrolled".
+### Enrolments marked as temporary:
+- automatically expire after 2 weeks (configurable)
+- are auto-removed upon permanent enrolment
 
-### This role:
-- automatically expires (unenrolling the student) after 2 weeks (configurable)
-- is auto-removed upon permanent enrolment (i.e., when another role is applied)
-- sends out an explanatory email to both teacher and student on enrolment
-- sends out a reminder email every two days (to student only)
-- sends out an email when the role expires (student only)
-- sends out an email if the student is fully enrolled before the temporary role expires ("upgraded", student only)
+### The following emails are sent by the plugin (configurable):
+- explanatory email to both teacher and student on enrolment
+- reminder email every two days (configurable, to student only)
+- explanatory email when the role expires (student only)
+- explanatory email if the student is fully enrolled before the temporary role expires ("upgraded", student only)
 
 ### What you can change in the settings:
-- **On/Off**: The first time you turn the plugin on, it will create the Temporarily Enrolled role. While off, no emails are sent, and no automatic expirations take place (although the role is left intact)
-- **Duration**: How long the temporary role lasts before it expires
-- **Reminder email frequency**: How often reminder emails are sent (in days)
-- **Email content**: You can edit the content of all the aforementioned emails. Special tags like `{STUDENTFIRST}` or `{TEACHER}` are used to generate personalized email content
+- **On/Off**: While off, no emails are sent, and no automatic expirations take place.
+- **Duration**: How long the temporary role lasts before it expires.
+- **Reminder email frequency**: How often reminder emails are sent (in days).
+- **Email content**: You can edit the content of all the aforementioned emails. Special tags like `{STUDENTFIRST}` or `{TEACHER}` are used to generate personalized email content.
 
-### What you shouldn't change:
-- Do not change the shortname/identifier of the `temporary_enrolment` role
+## Setup:
+
+1. Create a role to mark temporary enrolments. For example, you might create a role with shortname "temporary_enrolment" and fullname "Temporarily Enrolled".
+2. Give the role whatever permissions you want, and configure it in any other way you please.
+3. Install this plugin.
+4. On the settings page, select the role you created in step 1 under "Temporary enrolment role".
+5. Press `Save changes`.
+
+### If you already have a role:
+
+If you already have a role that marks wait-listed, unregistered, or other students with provisional course access, and you want to use that role as the temporary enrolment marker for the Temporary Enrolments Plugin:
+
+1. Select that role in the settings page under "Temporary enrolment role" after install.
+2. Choose your options for the behavior of existing role assignments being brought under management of the Temporary Enrolments Plugin:
+    1. Do you __want__ existing role assignments of the chosen, pre-existing temporary marker role to become temporary and under the management of this plugin, or do you want those pre-existing assignments to remain as they were? (New assignments of the temporary role __will__ still be managed by the plugin.)
+    2. Do you want initial emails sent out to the users to whom the role was previously assigned?
+    3. Do you want the duration of the temporary enrolment to start from the time that pre-existing role assignments were created, or start from now?
+3. Press `Save changes`.
 
 ## Directory Overview
 
@@ -34,7 +50,7 @@ This plugin creates a new role "Temporarily Enrolled".
 
 #### observers.php
 
-Functions that respond to role assignments and unassignments, and perform module functions as necessary.
+Functions that respond to role assignments and unassignments, and perform plugin functions as necessary.
 
 ### db
 
@@ -44,7 +60,7 @@ Maps out events to 'listen' for and the corresponding callbacks (callback functi
 
 #### tasks.php
 
-Details module cron tasks to run, and how often. Tasks are contained in `classes/task`.
+Details plugin cron tasks to run, and how often. Tasks are contained in `classes/task`.
 
 #### install.xml
 
@@ -54,7 +70,7 @@ Database schema for setting up tables when installed.
 
 #### local_temporary_enrolments.php
 
-All the lang strings for the module. [Moodle String API](https://docs.moodle.org/dev/String_API "Moodle String API")
+All the lang strings for the plugin. [Moodle String API](https://docs.moodle.org/dev/String_API "Moodle String API")
 
 ### tests
 
