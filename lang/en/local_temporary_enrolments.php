@@ -42,7 +42,7 @@ $string['length_desc'] = 'Duration of temporary enrolment';
 $string['length_subdesc'] = 'How long temporary enrolment of a student will last before expiring';
 $string['onoff_desc'] = 'Turn temporary enrolments on';
 $string['onoff_subdesc'] = 'Check the box to turn on temporary enrolments (will create Temporary Enrolment role if it does not already exist). WARNING: If this plugin has previously been turned on and you turn it off, the Temporary Enrolment role will still be available. You must remove it manually if you want to completely stop using temporary enrolment.';
-$string['pluginname'] = 'Temporary Enrolments';
+$string['pluginname'] = 'Temporary enrolments';
 $string['remind_content_default'] = '{SUBJECT: Temporary enrolment reminder for {COURSE}}
 
 Dear {STUDENTFIRST},
