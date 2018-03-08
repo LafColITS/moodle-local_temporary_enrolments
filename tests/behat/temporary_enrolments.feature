@@ -1,4 +1,4 @@
-@hampshire @local @local_temporary_enrolments
+@local @local_temporary_enrolments
 Feature: Temporary Enrolments
   In order to test temporary enrolment
   As an admin
@@ -17,7 +17,7 @@ Feature: Temporary Enrolments
       | Test Role | test      |
     When I log in as "admin"
     And I am on site homepage
-    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     And I click on "s__local_temporary_enrolments_onoff" "checkbox"
     And I select "test" from the "s__local_temporary_enrolments_roleid" singleselect
     And I press "Save changes"
@@ -39,16 +39,24 @@ Feature: Temporary Enrolments
   Scenario: Check that default settings are displayed
     When I log in as "admin"
     And I am on site homepage
-    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     Then the following fields match these values:
      | s__local_temporary_enrolments_onoff                      | 0     |
+     | s__local_temporary_enrolments_length[v]                  | 2     |
+     | s__local_temporary_enrolments_length[u]                  | weeks |
+    And "weeks" "option" should be visible
+    Given I click on ".nav-link[href='#local_temporary_enrolments_existingassignments']" "css_element"
+    Then the following fields match these values:
      | s__local_temporary_enrolments_existingassignments        | 1     |
      | s__local_temporary_enrolments_existingassignments_start  | 1     |
      | s__local_temporary_enrolments_existingassignments_email  | 1     |
-     | s__local_temporary_enrolments_length[v]                  | 2     |
-     | s__local_temporary_enrolments_length[u]                  | weeks |
+    Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
      | s__local_temporary_enrolments_remind_freq                | 2     |
-    And "weeks" "option" should be visible
+     | s__local_temporary_enrolments_studentinit_onoff          | 1     |
+     | s__local_temporary_enrolments_teacherinit_onoff          | 1     |
+     | s__local_temporary_enrolments_remind_onoff               | 1     |
+     | s__local_temporary_enrolments_expire_onoff               | 1     |
+     | s__local_temporary_enrolments_upgrade_onoff              | 1     |
     And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_studentinit_content" "css_element"
     And I should see "Dear {TEACHER}" in the "#id_s__local_temporary_enrolments_teacherinit_content" "css_element"
     And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_remind_content" "css_element"
@@ -59,26 +67,32 @@ Feature: Temporary Enrolments
   Scenario: Testing config validation
     And I log in as "admin"
     When I am on site homepage
-    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
+    Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
     And I set the field "s__local_temporary_enrolments_remind_freq" to "0"
     And I press "Save changes"
-    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
+    Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
     Then the field "s__local_temporary_enrolments_remind_freq" matches value "2"
     When I set the field "s__local_temporary_enrolments_remind_freq" to "2.1"
     And I press "Save changes"
-    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
+    Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
     Then the field "s__local_temporary_enrolments_remind_freq" matches value "2"
     When I set the field "s__local_temporary_enrolments_remind_freq" to "-1"
     And I press "Save changes"
-    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
+    Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
     Then the field "s__local_temporary_enrolments_remind_freq" matches value "2"
     When I set the field "s__local_temporary_enrolments_remind_freq" to "123"
     And I press "Save changes"
-    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
+    Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
     Then the field "s__local_temporary_enrolments_remind_freq" matches value "2"
     When I set the field "s__local_temporary_enrolments_remind_freq" to "3"
     And I press "Save changes"
-    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
+    Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
     Then the field "s__local_temporary_enrolments_remind_freq" matches value "3"
 
   @javascript
@@ -94,7 +108,7 @@ Feature: Temporary Enrolments
       | Test Role | test      |
     And I log in as "admin"
     And I am on site homepage
-    And I navigate to "Temporary Enrolments" node in "Site administration>Plugins>Local plugins"
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     And I click on "s__local_temporary_enrolments_onoff" "checkbox"
     And I select "test" from the "s__local_temporary_enrolments_roleid" singleselect
     And I press "Save changes"

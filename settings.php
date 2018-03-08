@@ -71,7 +71,7 @@ if ($hassiteconfig) {
     // Begin the actual settings.
     $settings = new theme_boost_admin_settingspage_tabs('local_temporary_enrolments', get_string('pluginname', 'local_temporary_enrolments'));
 
-    // Main settings
+    // Main Set
     $page = new admin_settingpage('local_temporary_enrolments_main', 'Main');
 
     $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_onoff',
@@ -99,7 +99,6 @@ if ($hassiteconfig) {
 
     $settings->add($page);
 
-    // Email settings
     $page = new admin_settingpage('local_temporary_enrolments_email', 'Email');
 
     $page->add(new admin_setting_configtext('local_temporary_enrolments_remind_freq',
@@ -108,6 +107,16 @@ if ($hassiteconfig) {
         $defaultsetting = '2',
         $paramtype = "/^0*[1-9]{1,2}$/",
         $size = 1));
+
+    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_studentinit_onoff',
+        get_string('studentinit_onoff_desc', 'local_temporary_enrolments'),
+        get_string('studentinit_onoff_subdesc', 'local_temporary_enrolments'),
+        1));
+
+    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_teacherinit_onoff',
+        get_string('teacherinit_onoff_desc', 'local_temporary_enrolments'),
+        get_string('teacherinit_onoff_subdesc', 'local_temporary_enrolments'),
+        1));
 
     $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_remind_onoff',
         get_string('remind_onoff_desc', 'local_temporary_enrolments'),
@@ -123,6 +132,16 @@ if ($hassiteconfig) {
         get_string('upgrade_onoff_desc', 'local_temporary_enrolments'),
         get_string('upgrade_onoff_subdesc', 'local_temporary_enrolments'),
         1));
+
+    $page->add(new admin_setting_configtextarea('local_temporary_enrolments_studentinit_content',
+        get_string('studentinit_content_desc', 'local_temporary_enrolments'),
+        get_string('studentinit_content_subdesc', 'local_temporary_enrolments'),
+        get_string('studentinit_content_default', 'local_temporary_enrolments')));
+
+    $page->add(new admin_setting_configtextarea('local_temporary_enrolments_teacherinit_content',
+        get_string('teacherinit_content_desc', 'local_temporary_enrolments'),
+        get_string('teacherinit_content_subdesc', 'local_temporary_enrolments'),
+        get_string('teacherinit_content_default', 'local_temporary_enrolments')));
 
     $page->add(new admin_setting_configtextarea('local_temporary_enrolments_remind_content',
         get_string('remind_content_desc', 'local_temporary_enrolments'),
@@ -141,7 +160,6 @@ if ($hassiteconfig) {
 
     $settings->add($page);
 
-    // Existing Role Assignment settings
     $page = new admin_settingpage('local_temporary_enrolments_existingassignments', 'Existing Role Assignments');
 
     $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_existingassignments',
