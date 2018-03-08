@@ -20,6 +20,25 @@ require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 if ($hassiteconfig) {
     global $DB, $CFG;
 
+    // Handle existing role assignments.
+    if (get_temp_role()) {
+      // Has the temp marker role been changed since last custom table update?
+      $current_custom_table_entries =$DB->get_records('local_temporary_enrolments');
+      $roleid = get_temp_role()->id;
+      if (count($current_custom_table_entries) == 0 || $current_custom_table_entries[array_keys($current_custom_table_entries)[0]]->roleid != $roleid) {
+        // Wipe any outdated entries in the custom table.
+        $DB->delete_records('local_temporary_enrolments');
+        // Add role existingassignments_subdesc
+        $add_existing_assignments = $DB->get_record('config', array('name' => 'local_temporary_enrolments_existingassignments'));
+        if (gettype($add_existing_assignments) == 'object' && $add_existing_assignments->value) {
+          $role_assignments_to_add = $DB->get_records('role_assignments', array('roleid' => $roleid));
+          foreach ($role_assignments_to_add as $assignment) {
+            add_to_custom_table($assignment->id, $assignment->roleid, $assignment->timemodified);
+          }
+        }
+      }
+    }
+
     // Update reminder email frequency in DB if needed.
     $remindfreq = $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq'));
     if ($remindfreq) { // In case it hasn't been set yet.
@@ -62,7 +81,7 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configcheckbox('local_temporary_enrolments_existingassignments_email',
         get_string('existingassignments_email_desc', 'local_temporary_enrolments'),
         get_string('existingassignments_email_subdesc', 'local_temporary_enrolments'),
-        0));
+        1));
 
     $settings->add(new admin_setting_configselect('local_temporary_enrolments_existingassignments_start',
         get_string('existingassignments_start_desc', 'local_temporary_enrolments'),

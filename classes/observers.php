@@ -68,13 +68,7 @@ class observers {
                     }
 
                     // Set expiration time.
-                    $insert = new stdClass();
-                    $insert->roleassignid = $event->other['id'];
-                    $insert->roleid = $event->objectid; // This is stored so we can easily check that the table is up to date if the role settings are changed.
-                    $length = $CFG->local_temporary_enrolments_length;
-                    $insert->timeend = $event->timecreated + $length;
-                    $insert->timestart = $event->timecreated;
-                    $DB->insert_record('local_temporary_enrolments', $insert);
+                    add_to_custom_table($event->other['id'], $event->objectid, $event->timecreated);
                 }
             }
         }

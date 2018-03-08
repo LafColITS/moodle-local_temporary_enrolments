@@ -95,11 +95,32 @@ function send_temporary_enrolments_email($data, $which, $sendto='relateduserid')
     email_to_user($to, $from, $subject, $message);
 }
 
+/**
+ * Add a role assignment to the custom table.
+ *
+ * @param int $ra_id Role assignment id
+ * @param int $ra_roleid Role assignment role id
+ * @param int $timecreated Time the role assignment was created
+ *
+ * @return void
+ */
+function add_to_custom_table($ra_id, $ra_roleid, $timecreated) {
+  global $DB, $CFG;
+
+  $insert = new stdClass();
+  $insert->roleassignid = $ra_id;
+  $insert->roleid = $ra_roleid; // This is stored so we can easily check that the table is up to date if the role settings are changed.
+  $length = $CFG->local_temporary_enrolments_length;
+  $insert->timeend = $timecreated + $length;
+  $insert->timestart = $timecreated;
+  $DB->insert_record('local_temporary_enrolments', $insert);
+}
+
 function get_temp_role() {
   global $DB;
 
   $id = $DB->get_record('config', array('name' => 'local_temporary_enrolments_roleid'));
-  if ($id) {
+  if (gettype($id) == 'object') {
     return $DB->get_record('role', array('id' => $id->value));
   }
 }
