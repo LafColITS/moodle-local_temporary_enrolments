@@ -67,6 +67,11 @@ if ($hassiteconfig) {
         0));
 
     $options = $DB->get_records_menu('role', null, '', 'id,shortname');
+    $options = array_filter($options, function($v, $k) {
+      global $DB;
+      $contextlevels = $DB->get_records_menu('role_context_levels', array('roleid' => $k), '', 'id,contextlevel');
+      return in_array(CONTEXT_COURSE, array_values($contextlevels));
+    }, ARRAY_FILTER_USE_BOTH);
     $settings->add(new admin_setting_configselect('local_temporary_enrolments_roleid',
         get_string('roleid_desc', 'local_temporary_enrolments'),
         get_string('roleid_subdesc', 'local_temporary_enrolments'),
