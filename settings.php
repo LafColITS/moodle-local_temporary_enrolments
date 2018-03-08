@@ -32,8 +32,14 @@ if ($hassiteconfig) {
         $add_existing_assignments = $DB->get_record('config', array('name' => 'local_temporary_enrolments_existingassignments'));
         if (gettype($add_existing_assignments) == 'object' && $add_existing_assignments->value) {
           $role_assignments_to_add = $DB->get_records('role_assignments', array('roleid' => $roleid));
+          $now = time();
           foreach ($role_assignments_to_add as $assignment) {
-            add_to_custom_table($assignment->id, $assignment->roleid, $assignment->timemodified);
+            $start = $DB->get_record('config', array('name' => 'local_temporary_enrolments_existingassignments_start'));
+            $starttime = $assignment->timemodified; // Default
+            if (gettype($start) == 'object' && $start->value) {
+              $starttime = $now;
+            }
+            add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
             $send_email = $DB->get_record('config', array('name' => 'local_temporary_enrolments_existingassignments_email'));
             if (gettype($send_email) == 'object' && $send_email->value) {
               $assignerid = 1;
