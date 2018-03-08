@@ -34,6 +34,16 @@ if ($hassiteconfig) {
           $role_assignments_to_add = $DB->get_records('role_assignments', array('roleid' => $roleid));
           foreach ($role_assignments_to_add as $assignment) {
             add_to_custom_table($assignment->id, $assignment->roleid, $assignment->timemodified);
+            $send_email = $DB->get_record('config', array('name' => 'local_temporary_enrolments_existingassignments_email'));
+            if (gettype($send_email) == 'object' && $send_email->value) {
+              $assignerid = 1;
+              $assigneeid = $assignment->userid;
+              $context = $DB->get_record('context', array('id' => $assignment->contextid));
+              $courseid = $context->instanceid;
+              $ra_id = $assignment->id;
+              $which = 'studentinit';
+              send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which);
+            }
           }
         }
       }

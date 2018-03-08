@@ -52,12 +52,13 @@ class remind_task extends \core\task\scheduled_task {
                     $student = $DB->get_record('user', array('id' => $roleassignment->userid));
                     $context = $DB->get_record('context', array('id' => $roleassignment->contextid));
                     $course = $DB->get_record('course', array('id' => $context->instanceid));
-                    $data = new stdClass();
-                    $data->relateduserid = $student->id;
-                    $data->userid = 1; // Just fake it to prevent errors in the email function.
-                    $data->courseid = $course->id;
-                    $data->other = array('id' => $roleassignment->id);
-                    send_temporary_enrolments_email($data, 'remind');
+
+                    $assignerid = 1; // Fake the 'from' user to prevent errors.
+                    $assigneeid = $student->id;
+                    $courseid = $course->id;
+                    $ra_id = $roleassignment->id;
+                    $which = 'remind';
+                    send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which);
                 }
             }
         }

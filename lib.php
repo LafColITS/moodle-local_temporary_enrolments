@@ -38,7 +38,7 @@ define("LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_FULLNAME", "Temporarily Enrolled");
  *
  * @return void
  */
-function send_temporary_enrolments_email($data, $which, $sendto='relateduserid') {
+function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which, $sendto='assigneeid') {
     global $DB, $CFG;
 
     // Build 'from' object.
@@ -49,11 +49,11 @@ function send_temporary_enrolments_email($data, $which, $sendto='relateduserid')
     $from->email = $noreplyuser->email; // Required to prevent Notice.
 
     // Get related data.
-    $course = $DB->get_record('course', array('id' => $data->courseid));
-    $student = $DB->get_record('user', array('id' => $data->relateduserid));
-    $teacher = $DB->get_record('user', array('id' => $data->userid));
-    if ($DB->record_exists('local_temporary_enrolments', array('roleassignid' => $data->other['id']))) {
-        $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $data->other['id']));
+    $course = $DB->get_record('course', array('id' => $courseid));
+    $student = $DB->get_record('user', array('id' => $assigneeid));
+    $teacher = $DB->get_record('user', array('id' => $assignerid));
+    if ($DB->record_exists('local_temporary_enrolments', array('roleassignid' => $ra_id))) {
+        $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $ra_id));
     } else {
         $expiration = new stdClass();
         $expiration->timeend = 0;
@@ -89,7 +89,7 @@ function send_temporary_enrolments_email($data, $which, $sendto='relateduserid')
     // Build final email body and subject and to address.
     $subject = preg_replace($patterns, $replaces, $subject[1]);
     $message = preg_replace($patterns, $replaces, $message);
-    $to = $DB->get_record('user', array('id' => $data->{$sendto}));
+    $to = $DB->get_record('user', array('id' => $$sendto));
 
     // Send email.
     email_to_user($to, $from, $subject, $message);

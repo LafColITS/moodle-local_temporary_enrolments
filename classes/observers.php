@@ -59,12 +59,22 @@ class observers {
 
                     // Send STUDENT initial email.
                     if ($CFG->local_temporary_enrolments_studentinit_onoff) {
-                        send_temporary_enrolments_email($event, 'studentinit');
+                      $assignerid = $event->userid;
+                      $assigneeid = $event->relateduserid;
+                      $courseid = $event->courseid;
+                      $ra_id = $event->other['id'];
+                      $which = 'studentinit';
+                      send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which);
                     }
 
                     // Send TEACHER initial email.
                     if ($CFG->local_temporary_enrolments_teacherinit_onoff) {
-                        send_temporary_enrolments_email($event, 'teacherinit', 'userid');
+                      $assignerid = $event->userid;
+                      $assigneeid = $event->relateduserid;
+                      $courseid = $event->courseid;
+                      $ra_id = $event->other['id'];
+                      $which = 'teacherinit';
+                      send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which, 'assignerid');
                     }
 
                     // Set expiration time.
@@ -95,7 +105,12 @@ class observers {
             if ($event->objectid != $role->id && $hasrole) {
                 // Send upgrade email.
                 if ($CFG->local_temporary_enrolments_upgrade_onoff) {
-                    send_temporary_enrolments_email($event, 'upgrade');
+                  $assignerid = $event->userid;
+                  $assigneeid = $event->relateduserid;
+                  $courseid = $event->courseid;
+                  $ra_id = $event->other['id'];
+                  $which = 'upgrade';
+                  send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which);
                 }
 
                 // Remove temp role and update the entry in our custom table.
@@ -130,7 +145,12 @@ class observers {
                     if (!$expiration->upgraded) { // Check if the enrolment was removed by upgrade().
                         // Send expire email.
                         if ($CFG->local_temporary_enrolments_expire_onoff) {
-                            send_temporary_enrolments_email($event, 'expire');
+                          $assignerid = $event->userid;
+                          $assigneeid = $event->relateduserid;
+                          $courseid = $event->courseid;
+                          $ra_id = $event->other['id'];
+                          $which = 'expire';
+                          send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which);
                         }
                     }
                 }
