@@ -32,7 +32,7 @@ $string['expire_content_default'] = '{SUBJECT: Temporary enrolment for {COURSE} 
 
 Dear {STUDENTFIRST},
 
-Your temporary access to {COURSE} has expired or been revoked. You will no longer be able to access this course. If you wish to participate in this course, please register for it through Central Records.';
+Your temporary access to {COURSE} has expired or been revoked. You will no longer be able to access this course. If you wish to participate in this course, please register for it through the registrar.';
 $string['expire_content_desc'] = 'Expiration email';
 $string['expire_content_subdesc'] = 'Emailed to student upon expiration of their temporary enrolment (if they have not been fully enrolled)';
 $string['expire_onoff_desc'] = 'Turn expiration email on/off';
@@ -47,7 +47,7 @@ $string['remind_content_default'] = '{SUBJECT: Temporary enrolment reminder for 
 
 Dear {STUDENTFIRST},
 
-Please be advised that your temporary enrolment in {COURSE} will expire in {TIMELEFT} days. If you wish to continue participating in this course you MUST register for it through TheHub or Central Records.';
+Please be advised that your temporary enrolment in {COURSE} will expire in {TIMELEFT} days. If you wish to continue participating in this course you MUST formally register for it through the registrar.';
 $string['remind_content_desc'] = 'Reminder email';
 $string['remind_content_subdesc'] = 'Emailed to student every x days to remind them that their enrolment is only temporary';
 $string['remind_freq_desc'] = 'Reminder email frequency';
@@ -61,19 +61,7 @@ $string['studentinit_content_default'] = '{SUBJECT: Temporary enrolment granted 
 
 Dear {STUDENTFIRST},
 
-You have been granted temporary access to the Moodle site for {COURSE}. After you are officially registered for the course, you will receive student access for the remainder of the semester. Temporary access will expire after 14 days. Though faculty can add you to Moodle, they CANNOT register you for the course.
-
-Notes:
-
-Register on TheHub until the add deadline.
-
-    To register for the course with instructor approval between the add deadline and the drop deadline at the beginning of the semester, submit a signed course enrolment form to Central Records. The form is located on the register and drop sections page on your student menu on TheHub and in Central Records.
-
-    Continue to check your schedule on TheHub until all courses you are attending are listed.
-
-    You can refer to the Academic Calendar for registration dates and deadlines.
-
-Five College students taking Hampshire courses should follow the instructions at their home institutions to complete registration.';
+You have been granted temporary access to the Moodle site for {COURSE}. After you are officially registered for the course, you will receive student access for the remainder of the semester. Temporary access will expire after 14 days. Though faculty can add you to Moodle, they CANNOT register you for the course.';
 $string['studentinit_content_desc'] = 'Student initial email';
 $string['studentinit_content_subdesc'] = 'Emailed to student upon being temporarily enrolled';
 $string['studentinit_onoff_desc'] = 'Turn student initial email on/off';
@@ -82,7 +70,7 @@ $string['teacherinit_content_default'] = '{SUBJECT: Temporary enrolment granted 
 
 Dear {TEACHER},
 
-You have granted {STUDENTFULL} temporary access to {COURSE}. Temporary enrolment will expire after 14 days. Though you can add students to Moodle, you CANNOT register them for the course. They may register through TheHub until the add deadline. To register for the course with instructor approval between the add deadline and the drop deadline, students must submit a signed course enrolment form to Central Records if they wish to be enrolled.';
+You have granted {STUDENTFULL} temporary access to {COURSE}. Temporary enrolment will expire after 14 days. Though you can add students to Moodle, you CANNOT register them for the course. They may register through through the registrar until the add deadline.';
 $string['teacherinit_content_desc'] = 'Teacher initial email';
 $string['teacherinit_content_subdesc'] = 'Emailed to the teacher who enrolled a student temporarily';
 $string['teacherinit_onoff_desc'] = 'Turn teacher initial email on/off';
@@ -91,7 +79,7 @@ $string['upgrade_content_default'] = '{SUBJECT: Temporary enrolment for {COURSE}
 
 Dear {STUDENTFIRST},
 
-Your temporary access to {COURSE} has been upgraded to full enrolment! You are now registered for this course and have permanent access to the Moodle site.';
+Your temporary access to {COURSE} has been upgraded to full enrolment! You are now officially registered for this course and have permanent access to the Moodle site.';
 $string['upgrade_content_desc'] = 'Upgrade email';
 $string['upgrade_content_subdesc'] = 'Emailed to student if they are enrolled fully (upgrading their enrolment to permanent status).';
 $string['upgrade_onoff_desc'] = 'Turn upgrade email on/off';
