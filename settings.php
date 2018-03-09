@@ -20,41 +20,6 @@ require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 if ($hassiteconfig) {
     global $DB, $CFG;
 
-    // Handle existing role assignments.
-    if (get_temp_role()) {
-      // Has the temp marker role been changed since last custom table update?
-      $current_custom_table_entries =$DB->get_records('local_temporary_enrolments');
-      $roleid = get_temp_role()->id;
-      if (count($current_custom_table_entries) == 0 || $current_custom_table_entries[array_keys($current_custom_table_entries)[0]]->roleid != $roleid) {
-        // Wipe any outdated entries in the custom table.
-        $DB->delete_records('local_temporary_enrolments');
-        // Add role existingassignments_subdesc
-        $add_existing_assignments = $DB->get_record('config', array('name' => 'local_temporary_enrolments_existingassignments'));
-        if (gettype($add_existing_assignments) == 'object' && $add_existing_assignments->value) {
-          $role_assignments_to_add = $DB->get_records('role_assignments', array('roleid' => $roleid));
-          $now = time();
-          foreach ($role_assignments_to_add as $assignment) {
-            $start = $DB->get_record('config', array('name' => 'local_temporary_enrolments_existingassignments_start'));
-            $starttime = $assignment->timemodified; // Default
-            if (gettype($start) == 'object' && $start->value) {
-              $starttime = $now;
-            }
-            add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
-            $send_email = $DB->get_record('config', array('name' => 'local_temporary_enrolments_existingassignments_email'));
-            if (gettype($send_email) == 'object' && $send_email->value) {
-              $assignerid = 1;
-              $assigneeid = $assignment->userid;
-              $context = $DB->get_record('context', array('id' => $assignment->contextid));
-              $courseid = $context->instanceid;
-              $ra_id = $assignment->id;
-              $which = 'studentinit';
-              send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which);
-            }
-          }
-        }
-      }
-    }
-
     // Begin the actual settings.
     $settings = new theme_boost_admin_settingspage_tabs('local_temporary_enrolments', get_string('pluginname', 'local_temporary_enrolments'));
 
@@ -74,11 +39,13 @@ if ($hassiteconfig) {
       $contextlevels = $DB->get_records_menu('role_context_levels', array('roleid' => $k), '', 'id,contextlevel');
       return in_array(CONTEXT_COURSE, array_values($contextlevels));
     }, ARRAY_FILTER_USE_BOTH);
-    $page->add(new admin_setting_configselect('local_temporary_enrolments_roleid',
+    $temp = new admin_setting_configselect('local_temporary_enrolments_roleid',
         get_string('roleid_desc', 'local_temporary_enrolments'),
         get_string('roleid_subdesc', 'local_temporary_enrolments'),
         0,
-        $options));
+        $options);
+    $temp->set_updatedcallback('handle_existing_assignments');
+    $page->add($temp);
 
     // Duration
     $temp = new admin_setting_configduration('local_temporary_enrolments_length',
@@ -191,4 +158,6 @@ if ($hassiteconfig) {
     $settings->add($page);
 
     $ADMIN->add('localplugins', $settings);
+
+    // var_dump(array_keys(get_defined_vars()));
 }

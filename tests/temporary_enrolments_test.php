@@ -135,7 +135,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $current_custom_table_entries = $DB->get_records('local_temporary_enrolments', array('roleid' => $test_role1));
         $this->assertEquals(2, count($current_custom_table_entries));
 
-        // And if we
+        // And if we switch up the config and run handle_existing_assignments...
     }
 
     /**

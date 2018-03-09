@@ -125,6 +125,37 @@ function get_temp_role() {
   }
 }
 
+function handle_existing_assignments(){
+  global $DB;
+  // Wipe any outdated entries in the custom table.
+  $DB->delete_records('local_temporary_enrolments');
+  $roleid = get_temp_role()->id;
+  // Add role existingassignments_subdesc
+  $add_existing_assignments = intval($_POST['s__local_temporary_enrolments_existingassignments']);
+  if ($add_existing_assignments) {
+    $role_assignments_to_add = $DB->get_records('role_assignments', array('roleid' => $roleid));
+    $now = time();
+    foreach ($role_assignments_to_add as $assignment) {
+      $start = intval($_POST['s__local_temporary_enrolments_existingassignments_start']);
+      $starttime = $assignment->timemodified; // Default
+      if ($start) {
+        $starttime = $now;
+      }
+      add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
+      $send_email = intval($_POST['s__local_temporary_enrolments_existingassignments_email']);
+      if ($send_email) {
+        $assignerid = 1;
+        $assigneeid = $assignment->userid;
+        $context = $DB->get_record('context', array('id' => $assignment->contextid));
+        $courseid = $context->instanceid;
+        $ra_id = $assignment->id;
+        $which = 'studentinit';
+        send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which);
+      }
+    }
+  }
+}
+
 /**
  * Update the frequency of reminder emails in the database (based on config)
  *

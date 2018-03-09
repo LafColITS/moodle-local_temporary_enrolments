@@ -5,6 +5,52 @@ Feature: Temporary Enrolments
   I need to make a test course
 
   @javascript
+  Scenario: Testing existing role assignment behavior
+  Given the following "courses" exist:
+    | fullname    | shortname   | numsections |
+    | Test Course | testcourse  | 44          |
+  Given the following "users" exist:
+    | username  | firstname | lastname |
+    | userone   | One       | User     |
+    | usertwo   | Two       | User     |
+    | userthree | Three     | User     |
+    | userfour  | Four      | User     |
+  Given the following "roles" exist:
+    | name      | shortname |
+    | Role One  | roleone   |
+    | Role Two  | roletwo   |
+  When I log in as "admin"
+  And I am on site homepage
+  And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
+  And I click on "s__local_temporary_enrolments_onoff" "checkbox"
+  And I select "roleone" from the "s__local_temporary_enrolments_roleid" singleselect
+  And I press "Save changes"
+  And I am on site homepage
+  And I follow "Test Course"
+  And I wait until the page is ready
+  And I follow "Participants"
+  And I enrol "userone" user as "Role One"
+  And I enrol "usertwo" user as "Role One"
+  And I enrol "userthree" user as "Role Two"
+  And I enrol "userfour" user as "Role Two"
+  And I am on site homepage
+  And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
+  And I select "roletwo" from the "s__local_temporary_enrolments_roleid" singleselect
+  And I set the field "s__local_temporary_enrolments_length[v]" to "10"
+  And I select "seconds" from the "s__local_temporary_enrolments_length[u]" singleselect
+  And I press "Save changes"
+  And I wait "10" seconds
+  And I trigger cron
+  And I am on site homepage
+  And I follow "Test Course"
+  And I wait until the page is ready
+  When I follow "Participants"
+  Then I should see "One User" in the "#participantsform" "css_element"
+  Then I should see "Two User" in the "#participantsform" "css_element"
+  Then I should not see "Three User" in the "#participantsform" "css_element"
+  Then I should not see "Four User" in the "#participantsform" "css_element"
+
+  @javascript
   Scenario: Testing temp enrolment length updating
     Given the following "courses" exist:
       | fullname    | shortname   | numsections |
