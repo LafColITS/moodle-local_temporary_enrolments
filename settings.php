@@ -55,15 +55,6 @@ if ($hassiteconfig) {
       }
     }
 
-    // Update reminder email frequency in DB if needed.
-    $remindfreq = $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq'));
-    if ($remindfreq) { // In case it hasn't been set yet.
-        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
-        if (explode('/', $task->day)[1] != $remindfreq->value) {
-            update_remind_freq($task, $remindfreq);
-        }
-    }
-
     // Begin the actual settings.
     $settings = new theme_boost_admin_settingspage_tabs('local_temporary_enrolments', get_string('pluginname', 'local_temporary_enrolments'));
 
@@ -107,12 +98,19 @@ if ($hassiteconfig) {
     $page = new admin_settingpage('local_temporary_enrolments_email', 'Email');
 
     // Reminder email frequency
-    $page->add(new admin_setting_configtext('local_temporary_enrolments_remind_freq',
+    $temp = new admin_setting_configtext('local_temporary_enrolments_remind_freq',
         get_string('remind_freq_desc', 'local_temporary_enrolments'),
         get_string('remind_freq_subdesc', 'local_temporary_enrolments'),
         $defaultsetting = '2',
         $paramtype = "/^0*[1-9]{1,2}$/",
-        $size = 1));
+        $size = 1);
+    $temp->set_updatedcallback(function() {
+      global $DB;
+      $remindfreq = $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq'));
+      $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
+      update_remind_freq($task, $remindfreq);
+    });
+    $page->add($temp);
 
     // Emails on/off
     $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_studentinit_onoff',
