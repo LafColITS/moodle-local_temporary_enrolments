@@ -5,6 +5,76 @@ Feature: Temporary Enrolments
   I need to make a test course
 
   @javascript
+  Scenario: Testing temp enrolment length updating
+    Given the following "courses" exist:
+      | fullname    | shortname   | numsections |
+      | Test Course | testcourse  | 44          |
+    Given the following "users" exist:
+      | username  | firstname | lastname |
+      | testuser  | Test      | User     |
+    Given the following "roles" exist:
+      | name      | shortname |
+      | Test Role | test      |
+    When I log in as "admin"
+    And I am on site homepage
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
+    And I click on "s__local_temporary_enrolments_onoff" "checkbox"
+    And I select "test" from the "s__local_temporary_enrolments_roleid" singleselect
+    And I press "Save changes"
+    And I am on site homepage
+    And I follow "Test Course"
+    And I wait until the page is ready
+    And I follow "Participants"
+    And I enrol "testuser" user as "Test Role"
+    And I reload the page
+    And I wait until the page is ready
+    Then I should see "Test User" in the "#participantsform" "css_element"
+    And I am on site homepage
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
+    And I set the field "s__local_temporary_enrolments_length[v]" to "10"
+    And I select "seconds" from the "s__local_temporary_enrolments_length[u]" singleselect
+    And I press "Save changes"
+    And I wait "10" seconds
+    And I trigger cron
+    And I am on site homepage
+    And I follow "Test Course"
+    And I wait until the page is ready
+    When I follow "Participants"
+    Then I should not see "Test User" in the "#participantsform" "css_element"
+
+  @javascript
+  Scenario: Testing automatic unenrolment after time
+    Given the following "courses" exist:
+      | fullname    | shortname   | numsections |
+      | Test Course | testcourse  | 44          |
+    Given the following "users" exist:
+      | username  | firstname | lastname |
+      | testuser  | Test      | User     |
+    Given the following "roles" exist:
+      | name      | shortname |
+      | Test Role | test      |
+    When I log in as "admin"
+    And I am on site homepage
+    And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
+    And I click on "s__local_temporary_enrolments_onoff" "checkbox"
+    And I select "test" from the "s__local_temporary_enrolments_roleid" singleselect
+    And I set the field "s__local_temporary_enrolments_length[v]" to "10"
+    And I select "seconds" from the "s__local_temporary_enrolments_length[u]" singleselect
+    And I press "Save changes"
+    And I am on site homepage
+    And I follow "Test Course"
+    And I wait until the page is ready
+    And I follow "Participants"
+    And I enrol "testuser" user as "Test Role"
+    When I wait "10" seconds
+    And I trigger cron
+    And I am on site homepage
+    And I follow "Test Course"
+    And I wait until the page is ready
+    And I follow "Participants"
+    Then I should not see "Test User" in the "#participantsform" "css_element"
+
+  @javascript
   Scenario: Testing temporary enrolments plugin upgrade functionality
     And the following "courses" exist:
       | fullname     | shortname   | numsections |

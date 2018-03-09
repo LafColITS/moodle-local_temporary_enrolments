@@ -79,6 +79,66 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
     }
 
     /**
+     * Does selecting a marker role with existing assignments corrrectly switch out custom table entries?
+     *
+     * @return void
+     */
+    public function est_existing_assignments_behavior() {
+        $this->resetAfterTest();
+        global $DB, $CFG;
+
+        $data = $this->make();
+        $data->students = array();
+
+        $data['students']['Hermione'] = $this->getDataGenerator()->create_user(array(
+          'username'  => 'hermione',
+          'email'     => 'hermione@hogwarts.owl',
+          'firstname' => 'Hermione',
+          'lastname'  => 'Granger',
+        ));
+        $data['students']['Harry'] = $this->getDataGenerator()->create_user(array(
+          'username'  => 'daboywholived',
+          'email'     => 'hpindahouse@hogwarts.owl',
+          'firstname' => 'Harry',
+          'lastname'  => 'Potter',
+        ));
+        $data['students']['Ron'] = $this->getDataGenerator()->create_user(array(
+          'username'  => 'ronronron',
+          'email'     => 'roonilwazlib@hogwarts.owl',
+          'firstname' => 'Ronald',
+          'lastname'  => 'Weasley',
+        ));
+        $data['students']['Luna'] = $this->getDataGenerator()->create_user(array(
+          'username'  => 'luna',
+          'email'     => 'crumplehornedluna@hogwarts.owl',
+          'firstname' => 'Luna',
+          'lastname'  => 'Lovegood',
+        ));
+
+        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
+        $e = new enrol_manual_plugin();
+        $context = \context_course::instance($data['course']->id);
+        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $test_role1 = $data->role;
+        $test_role2 = $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role2'))->id;
+        // set_config('local_temporary_enrolments_roleid', $test_role);
+
+        // Enrol half as temp role 1, half as temp role 2
+        $e->enrol_user($enrol, $data['students']['Harry'], $test_role1);
+        $e->enrol_user($enrol, $data['students']['Hermione'], $test_role1);
+        $e->enrol_user($enrol, $data['student']['Ron'], $test_role_2);
+        $e->enrol_user($enrol, $data['student']['Luna'], $test_role2);
+
+        // Right now temp role is test_role_1, right?
+        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments');
+        $this->assertEquals(2, count($current_custom_table_entries));
+        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments', array('roleid' => $test_role1));
+        $this->assertEquals(2, count($current_custom_table_entries));
+
+        // And if we
+    }
+
+    /**
      * Does initialize() insert an expiration entry into our custom table?
      *
      * @return void

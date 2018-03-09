@@ -64,27 +64,19 @@ if ($hassiteconfig) {
         }
     }
 
-    // Update length of temporary enrolment if needed.
-    $lengthcfg = $DB->get_record('config', array('name' => 'local_temporary_enrolments_length'));
-    $expire = $DB->get_record('local_temporary_enrolments', array(), '*', IGNORE_MULTIPLE);
-    if ($lengthcfg && $expire) {
-        $lengthactual = $expire->timeend - $expire->timestart;
-        if ($lengthcfg->value != $lengthactual) {
-            update_length($lengthcfg->value);
-        }
-    }
-
     // Begin the actual settings.
     $settings = new theme_boost_admin_settingspage_tabs('local_temporary_enrolments', get_string('pluginname', 'local_temporary_enrolments'));
 
-    // Main Set
+    // Main Settings
     $page = new admin_settingpage('local_temporary_enrolments_main', 'Main');
 
+    // On/off
     $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_onoff',
         get_string('onoff_desc', 'local_temporary_enrolments'),
         get_string('onoff_subdesc', 'local_temporary_enrolments'),
         0));
 
+    // Temporary marker role
     $options = $DB->get_records_menu('role', null, '', 'id,shortname');
     $options = array_filter($options, function($v, $k) {
       global $DB;
@@ -97,16 +89,24 @@ if ($hassiteconfig) {
         0,
         $options));
 
-    $page->add(new admin_setting_configduration('local_temporary_enrolments_length',
+    // Duration
+    $temp = new admin_setting_configduration('local_temporary_enrolments_length',
         get_string('length_desc', 'local_temporary_enrolments'),
         get_string('length_subdesc', 'local_temporary_enrolments'),
         $defaultsetting = 1209600,
-        $defaultunit = 604800));
+        $defaultunit = 604800);
+    $temp->set_updatedcallback(function(){
+      global $DB;
+      update_length($DB->get_record('config', array('name' => 'local_temporary_enrolments_length'))->value);
+    });
+    $page->add($temp);
 
     $settings->add($page);
 
+    // Email settings
     $page = new admin_settingpage('local_temporary_enrolments_email', 'Email');
 
+    // Reminder email frequency
     $page->add(new admin_setting_configtext('local_temporary_enrolments_remind_freq',
         get_string('remind_freq_desc', 'local_temporary_enrolments'),
         get_string('remind_freq_subdesc', 'local_temporary_enrolments'),
@@ -114,6 +114,7 @@ if ($hassiteconfig) {
         $paramtype = "/^0*[1-9]{1,2}$/",
         $size = 1));
 
+    // Emails on/off
     $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_studentinit_onoff',
         get_string('studentinit_onoff_desc', 'local_temporary_enrolments'),
         get_string('studentinit_onoff_subdesc', 'local_temporary_enrolments'),
@@ -139,6 +140,7 @@ if ($hassiteconfig) {
         get_string('upgrade_onoff_subdesc', 'local_temporary_enrolments'),
         1));
 
+    // Email content
     $page->add(new admin_setting_configtextarea('local_temporary_enrolments_studentinit_content',
         get_string('studentinit_content_desc', 'local_temporary_enrolments'),
         get_string('studentinit_content_subdesc', 'local_temporary_enrolments'),
@@ -166,6 +168,7 @@ if ($hassiteconfig) {
 
     $settings->add($page);
 
+    // Existing role assignment settings
     $page = new admin_settingpage('local_temporary_enrolments_existingassignments', 'Existing Role Assignments');
 
     $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_existingassignments',
