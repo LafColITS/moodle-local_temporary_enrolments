@@ -22,14 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 namespace local_temporary_enrolments;
 require_once($CFG->dirroot. '/lib/moodlelib.php');
 require_once($CFG->dirroot. '/enrol/manual/lib.php');
 require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 require_once($CFG->dirroot. '/lib/accesslib.php');
 use stdClass;
-
-defined('MOODLE_INTERNAL') || die();
 
 class observers {
 

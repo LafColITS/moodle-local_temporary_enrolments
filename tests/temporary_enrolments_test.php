@@ -122,7 +122,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $testrole1 = $data['role'];
         $testrole2 = $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role2'));
 
-        // Enrol half as temp role 1, half as temp role 2
+        // Enrol half as temp role 1, half as temp role 2.
         $e->enrol_user($enrol, $data['students']['Harry']->id, $testrole1);
         $e->enrol_user($enrol, $data['students']['Hermione']->id, $testrole1);
         $e->enrol_user($enrol, $data['students']['Ron']->id, $testrole2);
@@ -136,7 +136,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         // And if we switch up the config and run handle_existing_assignments...
         set_config('local_temporary_enrolments_roleid', $testrole2);
-        // Temp role is now test_role2
+        // Temp role is now test_role2.
         handle_existing_assignments();
         $currententries = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(2, count($currententries));
@@ -168,30 +168,30 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         $this->assertEquals(count($results), 0);
 
-        // Start time: at creation
+        // Start time: at creation.
         set_config('local_temporary_enrolments_existingassignments_start', 0);
         set_config('local_temporary_enrolments_roleid', $testrole1);
         handle_existing_assignments();
         $currententries = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(2, count($currententries));
-        foreach($currententries as $entry) {
+        foreach ($currententries as $entry) {
             $assignment = $DB->get_record('role_assignments', array('id' => $entry->roleassignid));
             $this->assertEquals($assignment->timemodified, $entry->timestart);
         }
 
-        // Start time: now
-        sleep(10); // To ensure a time gap between role assignment and this bit of the test
+        // Start time: now.
+        sleep(10); // To ensure a time gap between role assignment and this bit of the test.
         set_config('local_temporary_enrolments_existingassignments_start', 1);
         set_config('local_temporary_enrolments_roleid', $testrole2);
         handle_existing_assignments();
         $currententries = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(2, count($currententries));
         $now = time();
-        foreach($currententries as $entry) {
+        foreach ($currententries as $entry) {
             $assignment = $DB->get_record('role_assignments', array('id' => $entry->roleassignid));
             $this->assertNotEquals($assignment->timemodified, $entry->timestart);
             $timediff = $entry->timestart - $now;
-            $this->assertLessThan(5, $timediff); // Will probably be 0, but give it a bit of wiggle room just in case
+            $this->assertLessThan(5, $timediff); // Will probably be 0, but give it a bit of wiggle room just in case.
         }
     }
 

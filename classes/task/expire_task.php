@@ -23,6 +23,8 @@
  */
 
 namespace local_temporary_enrolments\task;
+
+defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 require_once($CFG->dirroot. '/lib/accesslib.php');
 use stdClass;

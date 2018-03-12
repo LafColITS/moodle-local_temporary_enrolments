@@ -21,13 +21,10 @@
  * @copyright  2018 onwards Lafayette College ITS
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die;
+defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot. '/lib/accesslib.php');
 require_once($CFG->dirroot. '/admin/roles/classes/define_role_table_advanced.php');
 require_once($CFG->dirroot. '/lib/moodlelib.php');
-
-define("LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_SHORTNAME", "temporary_enrolment");
-define("LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_FULLNAME", "Temporarily Enrolled");
 
 /**
  * Send an email (init, remind, upgrade, or expire).
@@ -131,18 +128,19 @@ function handle_existing_assignments() {
     $DB->delete_records('local_temporary_enrolments');
     $roleid = get_temp_role()->id;
     // Add existing role assignments.
-    $onoff = array_key_exists('s__local_temporary_enrolments_existingassignments', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments'] : $CFG->local_temporary_enrolments_existingassignments;
+    $ss = "s__local_temporary_enrolments_existingassignments"; // Setting name string.
+    $onoff = array_key_exists($ss, $_POST) ? $_POST[$ss] : $CFG->local_temporary_enrolments_existingassignments;
     if ($onoff) {
         $toadd = $DB->get_records('role_assignments', array('roleid' => $roleid));
         $now = time();
         foreach ($toadd as $assignment) {
-            $start = array_key_exists('s__local_temporary_enrolments_existingassignments_start', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments_start'] : $CFG->local_temporary_enrolments_existingassignments_start;
-            $starttime = $assignment->timemodified; // Default
+            $start = array_key_exists($ss.'_start', $_POST) ? $_POST[$ss.'_start'] : $CFG->local_temporary_enrolments_existingassignments_start;
+            $starttime = $assignment->timemodified; // Default.
             if ($start) {
                 $starttime = $now;
             }
             add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
-            $sendemail = array_key_exists('s__local_temporary_enrolments_existingassignments_email', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments_email'] : $CFG->local_temporary_enrolments_existingassignments_email;
+            $sendemail = array_key_exists($ss.'_email', $_POST) ? $_POST[$ss.'_email'] : $CFG->local_temporary_enrolments_existingassignments_email;
             if ($sendemail) {
                 $assignerid = 1;
                 $assigneeid = $assignment->userid;
