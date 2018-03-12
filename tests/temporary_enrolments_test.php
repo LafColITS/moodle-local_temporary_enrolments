@@ -129,19 +129,19 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $e->enrol_user($enrol, $data['students']['Luna']->id, $testrole2);
 
         // Right now temp role is test_role_1, right?
-        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments');
-        $this->assertEquals(2, count($current_custom_table_entries));
-        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments', array('roleid' => $testrole1));
-        $this->assertEquals(2, count($current_custom_table_entries));
+        $currententries = $DB->get_records('local_temporary_enrolments');
+        $this->assertEquals(2, count($currententries));
+        $currententries = $DB->get_records('local_temporary_enrolments', array('roleid' => $testrole1));
+        $this->assertEquals(2, count($currententries));
 
         // And if we switch up the config and run handle_existing_assignments...
         set_config('local_temporary_enrolments_roleid', $testrole2);
         // Temp role is now test_role2
         handle_existing_assignments();
-        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments');
-        $this->assertEquals(2, count($current_custom_table_entries));
-        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments', array('roleid' => $testrole2));
-        $this->assertEquals(2, count($current_custom_table_entries));
+        $currententries = $DB->get_records('local_temporary_enrolments');
+        $this->assertEquals(2, count($currententries));
+        $currententries = $DB->get_records('local_temporary_enrolments', array('roleid' => $testrole2));
+        $this->assertEquals(2, count($currententries));
         // ... it correctly grabs new role assignments, yay!
 
         // What about emails?
@@ -172,9 +172,9 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         set_config('local_temporary_enrolments_existingassignments_start', 0);
         set_config('local_temporary_enrolments_roleid', $testrole1);
         handle_existing_assignments();
-        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments');
-        $this->assertEquals(2, count($current_custom_table_entries));
-        foreach($current_custom_table_entries as $entry) {
+        $currententries = $DB->get_records('local_temporary_enrolments');
+        $this->assertEquals(2, count($currententries));
+        foreach($currententries as $entry) {
             $assignment = $DB->get_record('role_assignments', array('id' => $entry->roleassignid));
             $this->assertEquals($assignment->timemodified, $entry->timestart);
         }
@@ -184,10 +184,10 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         set_config('local_temporary_enrolments_existingassignments_start', 1);
         set_config('local_temporary_enrolments_roleid', $testrole2);
         handle_existing_assignments();
-        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments');
-        $this->assertEquals(2, count($current_custom_table_entries));
+        $currententries = $DB->get_records('local_temporary_enrolments');
+        $this->assertEquals(2, count($currententries));
         $now = time();
-        foreach($current_custom_table_entries as $entry) {
+        foreach($currententries as $entry) {
             $assignment = $DB->get_record('role_assignments', array('id' => $entry->roleassignid));
             $this->assertNotEquals($assignment->timemodified, $entry->timestart);
             $timediff = $entry->timestart - $now;

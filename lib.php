@@ -130,12 +130,12 @@ function handle_existing_assignments() {
     // Wipe any outdated entries in the custom table.
     $DB->delete_records('local_temporary_enrolments');
     $roleid = get_temp_role()->id;
-    // Add role existingassignments_subdesc.
-    $addexistingassignments = array_key_exists('s__local_temporary_enrolments_existingassignments', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments'] : $CFG->local_temporary_enrolments_existingassignments;
-    if ($addexistingassignments) {
-        $assignmentstoadd = $DB->get_records('role_assignments', array('roleid' => $roleid));
+    // Add existing role assignments.
+    $onoff = array_key_exists('s__local_temporary_enrolments_existingassignments', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments'] : $CFG->local_temporary_enrolments_existingassignments;
+    if ($onoff) {
+        $toadd = $DB->get_records('role_assignments', array('roleid' => $roleid));
         $now = time();
-        foreach ($assignmentstoadd as $assignment) {
+        foreach ($toadd as $assignment) {
             $start = array_key_exists('s__local_temporary_enrolments_existingassignments_start', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments_start'] : $CFG->local_temporary_enrolments_existingassignments_start;
             $starttime = $assignment->timemodified; // Default
             if ($start) {
