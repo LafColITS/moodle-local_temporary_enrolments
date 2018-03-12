@@ -59,22 +59,22 @@ class observers {
 
                     // Send STUDENT initial email.
                     if ($CFG->local_temporary_enrolments_studentinit_onoff) {
-                      $assignerid = $event->userid;
-                      $assigneeid = $event->relateduserid;
-                      $courseid = $event->courseid;
-                      $ra_id = $event->other['id'];
-                      $which = 'studentinit';
-                      send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which);
+                        $assignerid = $event->userid;
+                        $assigneeid = $event->relateduserid;
+                        $courseid = $event->courseid;
+                        $raid = $event->other['id'];
+                        $which = 'studentinit';
+                        send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
                     }
 
                     // Send TEACHER initial email.
                     if ($CFG->local_temporary_enrolments_teacherinit_onoff) {
-                      $assignerid = $event->userid;
-                      $assigneeid = $event->relateduserid;
-                      $courseid = $event->courseid;
-                      $ra_id = $event->other['id'];
-                      $which = 'teacherinit';
-                      send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which, 'assignerid');
+                        $assignerid = $event->userid;
+                        $assigneeid = $event->relateduserid;
+                        $courseid = $event->courseid;
+                        $raid = $event->other['id'];
+                        $which = 'teacherinit';
+                        send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which, 'assignerid');
                     }
 
                     // Set expiration time.
@@ -105,12 +105,12 @@ class observers {
             if ($event->objectid != $role->id && $hasrole) {
                 // Send upgrade email.
                 if ($CFG->local_temporary_enrolments_upgrade_onoff) {
-                  $assignerid = $event->userid;
-                  $assigneeid = $event->relateduserid;
-                  $courseid = $event->courseid;
-                  $ra_id = $event->other['id'];
-                  $which = 'upgrade';
-                  send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which);
+                    $assignerid = $event->userid;
+                    $assigneeid = $event->relateduserid;
+                    $courseid = $event->courseid;
+                    $raid = $event->other['id'];
+                    $which = 'upgrade';
+                    send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
                 }
 
                 // Remove temp role and update the entry in our custom table.
@@ -145,12 +145,12 @@ class observers {
                     if (!$expiration->upgraded) { // Check if the enrolment was removed by upgrade().
                         // Send expire email.
                         if ($CFG->local_temporary_enrolments_expire_onoff) {
-                          $assignerid = $event->userid;
-                          $assigneeid = $event->relateduserid;
-                          $courseid = $event->courseid;
-                          $ra_id = $event->other['id'];
-                          $which = 'expire';
-                          send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which);
+                            $assignerid = $event->userid;
+                            $assigneeid = $event->relateduserid;
+                            $courseid = $event->courseid;
+                            $raid = $event->other['id'];
+                            $which = 'expire';
+                            send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
                         }
                     }
                 }

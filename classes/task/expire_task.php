@@ -50,7 +50,7 @@ class expire_task extends \core\task\scheduled_task {
             foreach ($expirations as $expiration) {
                 // Check if expired.
                 if ($expiration->timeend <= time()) {
-                  // Check if there is a corresponding role assignment.
+                    // Check if there is a corresponding role assignment.
                     $roleassignment = $DB->get_record('role_assignments', array('id' => $expiration->roleassignid));
                     if ($roleassignment) {
                         // Remove it.

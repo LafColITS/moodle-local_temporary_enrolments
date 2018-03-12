@@ -35,9 +35,9 @@ if ($hassiteconfig) {
     // Temporary marker role
     $options = $DB->get_records_menu('role', null, '', 'id,shortname');
     $options = array_filter($options, function($v, $k) {
-      global $DB;
-      $contextlevels = $DB->get_records_menu('role_context_levels', array('roleid' => $k), '', 'id,contextlevel');
-      return in_array(CONTEXT_COURSE, array_values($contextlevels));
+        global $DB;
+        $contextlevels = $DB->get_records_menu('role_context_levels', array('roleid' => $k), '', 'id,contextlevel');
+        return in_array(CONTEXT_COURSE, array_values($contextlevels));
     }, ARRAY_FILTER_USE_BOTH);
     $temp = new admin_setting_configselect('local_temporary_enrolments_roleid',
         get_string('roleid_desc', 'local_temporary_enrolments'),
@@ -54,8 +54,8 @@ if ($hassiteconfig) {
         $defaultsetting = 1209600,
         $defaultunit = 604800);
     $temp->set_updatedcallback(function(){
-      global $DB;
-      update_length($DB->get_record('config', array('name' => 'local_temporary_enrolments_length'))->value);
+        global $DB;
+        update_length($DB->get_record('config', array('name' => 'local_temporary_enrolments_length'))->value);
     });
     $page->add($temp);
 
@@ -72,10 +72,10 @@ if ($hassiteconfig) {
         $paramtype = "/^0*[1-9]{1,2}$/",
         $size = 1);
     $temp->set_updatedcallback(function() {
-      global $DB;
-      $remindfreq = $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq'));
-      $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
-      update_remind_freq($task, $remindfreq);
+        global $DB;
+        $remindfreq = $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq'));
+        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
+        update_remind_freq($task, $remindfreq);
     });
     $page->add($temp);
 
@@ -158,6 +158,4 @@ if ($hassiteconfig) {
     $settings->add($page);
 
     $ADMIN->add('localplugins', $settings);
-
-    // var_dump(array_keys(get_defined_vars()));
 }

@@ -41,21 +41,21 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
     public function make() {
         global $DB;
         set_config('local_temporary_enrolments_onoff', 1);
-        $test_role = $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role'));
-        set_config('local_temporary_enrolments_roleid', $test_role);
+        $testrole = $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role'));
+        set_config('local_temporary_enrolments_roleid', $testrole);
         unset_config('noemailever');
 
         $teacher = $this->getDataGenerator()->create_user(array(
-          'username'  => 'teacher',
-          'email'     => 'teacher@example.com',
-          'firstname' => 'Tea',
-          'lastname'  => 'Cher',
+            'username'  => 'teacher',
+            'email'     => 'teacher@example.com',
+            'firstname' => 'Tea',
+            'lastname'  => 'Cher',
         ));
         $student = $this->getDataGenerator()->create_user(array(
-          'username'  => 'student',
-          'email'     => 'student@example.com',
-          'firstname' => 'Stu',
-          'lastname'  => 'Dent',
+            'username'  => 'student',
+            'email'     => 'student@example.com',
+            'firstname' => 'Stu',
+            'lastname'  => 'Dent',
         ));
         $this->setUser($teacher);
         $course = $this->getDataGenerator()->create_course(array('shortname' => 'testcourse'));
@@ -91,63 +91,63 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $data['students'] = array();
 
         $data['students']['Hermione'] = $this->getDataGenerator()->create_user(array(
-          'username'  => 'hermione',
-          'email'     => 'hermione@hogwarts.owl',
-          'firstname' => 'Hermione',
-          'lastname'  => 'Granger',
+            'username'  => 'hermione',
+            'email'     => 'hermione@hogwarts.owl',
+            'firstname' => 'Hermione',
+            'lastname'  => 'Granger',
         ));
         $data['students']['Harry'] = $this->getDataGenerator()->create_user(array(
-          'username'  => 'daboywholived',
-          'email'     => 'hpindahouse@hogwarts.owl',
-          'firstname' => 'Harry',
-          'lastname'  => 'Potter',
+            'username'  => 'daboywholived',
+            'email'     => 'hpindahouse@hogwarts.owl',
+            'firstname' => 'Harry',
+            'lastname'  => 'Potter',
         ));
         $data['students']['Ron'] = $this->getDataGenerator()->create_user(array(
-          'username'  => 'ronronron',
-          'email'     => 'roonilwazlib@hogwarts.owl',
-          'firstname' => 'Ronald',
-          'lastname'  => 'Weasley',
+            'username'  => 'ronronron',
+            'email'     => 'roonilwazlib@hogwarts.owl',
+            'firstname' => 'Ronald',
+            'lastname'  => 'Weasley',
         ));
         $data['students']['Luna'] = $this->getDataGenerator()->create_user(array(
-          'username'  => 'luna',
-          'email'     => 'crumplehornedluna@hogwarts.owl',
-          'firstname' => 'Luna',
-          'lastname'  => 'Lovegood',
+            'username'  => 'luna',
+            'email'     => 'crumplehornedluna@hogwarts.owl',
+            'firstname' => 'Luna',
+            'lastname'  => 'Lovegood',
         ));
 
         $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
         $e = new enrol_manual_plugin();
         $context = \context_course::instance($data['course']->id);
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
-        $test_role1 = $data['role'];
-        $test_role2 = $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role2'));
+        $testrole1 = $data['role'];
+        $testrole2 = $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role2'));
 
         // Enrol half as temp role 1, half as temp role 2
-        $e->enrol_user($enrol, $data['students']['Harry']->id, $test_role1);
-        $e->enrol_user($enrol, $data['students']['Hermione']->id, $test_role1);
-        $e->enrol_user($enrol, $data['students']['Ron']->id, $test_role2);
-        $e->enrol_user($enrol, $data['students']['Luna']->id, $test_role2);
+        $e->enrol_user($enrol, $data['students']['Harry']->id, $testrole1);
+        $e->enrol_user($enrol, $data['students']['Hermione']->id, $testrole1);
+        $e->enrol_user($enrol, $data['students']['Ron']->id, $testrole2);
+        $e->enrol_user($enrol, $data['students']['Luna']->id, $testrole2);
 
         // Right now temp role is test_role_1, right?
         $current_custom_table_entries = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(2, count($current_custom_table_entries));
-        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments', array('roleid' => $test_role1));
+        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments', array('roleid' => $testrole1));
         $this->assertEquals(2, count($current_custom_table_entries));
 
         // And if we switch up the config and run handle_existing_assignments...
-        set_config('local_temporary_enrolments_roleid', $test_role2);
+        set_config('local_temporary_enrolments_roleid', $testrole2);
         // Temp role is now test_role2
         handle_existing_assignments();
         $current_custom_table_entries = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(2, count($current_custom_table_entries));
-        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments', array('roleid' => $test_role2));
+        $current_custom_table_entries = $DB->get_records('local_temporary_enrolments', array('roleid' => $testrole2));
         $this->assertEquals(2, count($current_custom_table_entries));
         // ... it correctly grabs new role assignments, yay!
 
         // What about emails?
         $sink = $this->redirectEmails();
 
-        set_config('local_temporary_enrolments_roleid', $test_role1);
+        set_config('local_temporary_enrolments_roleid', $testrole1);
         handle_existing_assignments();
 
         $sink->close();
@@ -160,7 +160,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         set_config('local_temporary_enrolments_existingassignments_email', 0);
         $sink = $this->redirectEmails();
 
-        set_config('local_temporary_enrolments_roleid', $test_role2);
+        set_config('local_temporary_enrolments_roleid', $testrole2);
         handle_existing_assignments();
 
         $sink->close();
@@ -170,28 +170,28 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         // Start time: at creation
         set_config('local_temporary_enrolments_existingassignments_start', 0);
-        set_config('local_temporary_enrolments_roleid', $test_role1);
+        set_config('local_temporary_enrolments_roleid', $testrole1);
         handle_existing_assignments();
         $current_custom_table_entries = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(2, count($current_custom_table_entries));
         foreach($current_custom_table_entries as $entry) {
-          $assignment = $DB->get_record('role_assignments', array('id' => $entry->roleassignid));
-          $this->assertEquals($assignment->timemodified, $entry->timestart);
+            $assignment = $DB->get_record('role_assignments', array('id' => $entry->roleassignid));
+            $this->assertEquals($assignment->timemodified, $entry->timestart);
         }
 
         // Start time: now
         sleep(10); // To ensure a time gap between role assignment and this bit of the test
         set_config('local_temporary_enrolments_existingassignments_start', 1);
-        set_config('local_temporary_enrolments_roleid', $test_role2);
+        set_config('local_temporary_enrolments_roleid', $testrole2);
         handle_existing_assignments();
         $current_custom_table_entries = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(2, count($current_custom_table_entries));
         $now = time();
         foreach($current_custom_table_entries as $entry) {
-          $assignment = $DB->get_record('role_assignments', array('id' => $entry->roleassignid));
-          $this->assertNotEquals($assignment->timemodified, $entry->timestart);
-          $timediff = $entry->timestart - $now;
-          $this->assertLessThan(5, $timediff); // Will probably be 0, but give it a bit of wiggle room just in case
+            $assignment = $DB->get_record('role_assignments', array('id' => $entry->roleassignid));
+            $this->assertNotEquals($assignment->timemodified, $entry->timestart);
+            $timediff = $entry->timestart - $now;
+            $this->assertLessThan(5, $timediff); // Will probably be 0, but give it a bit of wiggle room just in case
         }
     }
 

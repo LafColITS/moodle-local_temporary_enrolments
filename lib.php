@@ -38,7 +38,7 @@ define("LOCAL_TEMPORARY_ENROLMENTS_BUILTIN_FULLNAME", "Temporarily Enrolled");
  *
  * @return void
  */
-function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which, $sendto='assigneeid') {
+function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which, $sendto='assigneeid') {
     global $DB, $CFG;
 
     // Build 'from' object.
@@ -52,8 +52,8 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
     $course = $DB->get_record('course', array('id' => $courseid));
     $student = $DB->get_record('user', array('id' => $assigneeid));
     $teacher = $DB->get_record('user', array('id' => $assignerid));
-    if ($DB->record_exists('local_temporary_enrolments', array('roleassignid' => $ra_id))) {
-        $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $ra_id));
+    if ($DB->record_exists('local_temporary_enrolments', array('roleassignid' => $raid))) {
+        $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $raid));
     } else {
         $expiration = new stdClass();
         $expiration->timeend = 0;
@@ -98,62 +98,62 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
 /**
  * Add a role assignment to the custom table.
  *
- * @param int $ra_id Role assignment id
- * @param int $ra_roleid Role assignment role id
+ * @param int $raid Role assignment id
+ * @param int $raroleid Role assignment role id
  * @param int $timecreated Time the role assignment was created
  *
  * @return void
  */
-function add_to_custom_table($ra_id, $ra_roleid, $timecreated) {
-  global $DB, $CFG;
+function add_to_custom_table($raid, $raroleid, $timecreated) {
+    global $DB, $CFG;
 
-  $insert = new stdClass();
-  $insert->roleassignid = $ra_id;
-  $insert->roleid = $ra_roleid; // This is stored so we can easily check that the table is up to date if the role settings are changed.
-  $length = $CFG->local_temporary_enrolments_length;
-  $insert->timeend = $timecreated + $length;
-  $insert->timestart = $timecreated;
-  $DB->insert_record('local_temporary_enrolments', $insert);
+    $insert = new stdClass();
+    $insert->roleassignid = $raid;
+    $insert->roleid = $raroleid; // This is stored so we can easily check that the table is up to date if the role settings are changed.
+    $length = $CFG->local_temporary_enrolments_length;
+    $insert->timeend = $timecreated + $length;
+    $insert->timestart = $timecreated;
+    $DB->insert_record('local_temporary_enrolments', $insert);
 }
 
 function get_temp_role() {
-  global $DB;
+    global $DB;
 
-  $id = $DB->get_record('config', array('name' => 'local_temporary_enrolments_roleid'));
-  if (gettype($id) == 'object') {
-    return $DB->get_record('role', array('id' => $id->value));
-  }
+    $id = $DB->get_record('config', array('name' => 'local_temporary_enrolments_roleid'));
+    if (gettype($id) == 'object') {
+        return $DB->get_record('role', array('id' => $id->value));
+    }
 }
 
-function handle_existing_assignments(){
-  global $DB, $CFG;
-  // Wipe any outdated entries in the custom table.
-  $DB->delete_records('local_temporary_enrolments');
-  $roleid = get_temp_role()->id;
-  // Add role existingassignments_subdesc
-  $add_existing_assignments = array_key_exists('s__local_temporary_enrolments_existingassignments', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments'] : $CFG->local_temporary_enrolments_existingassignments;
-  if ($add_existing_assignments) {
-    $role_assignments_to_add = $DB->get_records('role_assignments', array('roleid' => $roleid));
-    $now = time();
-    foreach ($role_assignments_to_add as $assignment) {
-      $start = array_key_exists('s__local_temporary_enrolments_existingassignments_start', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments_start'] : $CFG->local_temporary_enrolments_existingassignments_start;
-      $starttime = $assignment->timemodified; // Default
-      if ($start) {
-        $starttime = $now;
-      }
-      add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
-      $send_email = array_key_exists('s__local_temporary_enrolments_existingassignments_email', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments_email'] : $CFG->local_temporary_enrolments_existingassignments_email;
-      if ($send_email) {
-        $assignerid = 1;
-        $assigneeid = $assignment->userid;
-        $context = $DB->get_record('context', array('id' => $assignment->contextid));
-        $courseid = $context->instanceid;
-        $ra_id = $assignment->id;
-        $which = 'studentinit';
-        send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $ra_id, $which);
-      }
+function handle_existing_assignments() {
+    global $DB, $CFG;
+    // Wipe any outdated entries in the custom table.
+    $DB->delete_records('local_temporary_enrolments');
+    $roleid = get_temp_role()->id;
+    // Add role existingassignments_subdesc.
+    $addexistingassignments = array_key_exists('s__local_temporary_enrolments_existingassignments', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments'] : $CFG->local_temporary_enrolments_existingassignments;
+    if ($addexistingassignments) {
+        $assignmentstoadd = $DB->get_records('role_assignments', array('roleid' => $roleid));
+        $now = time();
+        foreach ($assignmentstoadd as $assignment) {
+            $start = array_key_exists('s__local_temporary_enrolments_existingassignments_start', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments_start'] : $CFG->local_temporary_enrolments_existingassignments_start;
+            $starttime = $assignment->timemodified; // Default
+            if ($start) {
+                $starttime = $now;
+            }
+            add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
+            $sendemail = array_key_exists('s__local_temporary_enrolments_existingassignments_email', $_POST) ? $_POST['s__local_temporary_enrolments_existingassignments_email'] : $CFG->local_temporary_enrolments_existingassignments_email;
+            if ($sendemail) {
+                $assignerid = 1;
+                $assigneeid = $assignment->userid;
+                $context = $DB->get_record('context', array('id' => $assignment->contextid));
+                $courseid = $context->instanceid;
+                $raid = $assignment->id;
+                $which = 'studentinit';
+                send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
+            }
+        }
     }
-  }
 }
 
 /**

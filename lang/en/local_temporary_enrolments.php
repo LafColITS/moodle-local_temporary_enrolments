@@ -39,9 +39,9 @@ $string['expire_onoff_desc'] = 'Expiration email on/off';
 $string['expire_onoff_subdesc'] = 'Check the box to turn expiration emails on/off. This does not affect automatic unenrolment.';
 $string['expire_task'] = 'Check for expired temporary roles and remove them';
 $string['length_desc'] = 'Duration of temporary enrolment';
-$string['length_subdesc'] = 'How long temporary enrolment of a student will last before expiring';
-$string['onoff_desc'] = 'Turn temporary enrolments on';
-$string['onoff_subdesc'] = 'Check the box to turn on temporary enrolments (will create Temporary Enrolment role if it does not already exist). WARNING: If this plugin has previously been turned on and you turn it off, the Temporary Enrolment role will still be available. You must remove it manually if you want to completely stop using temporary enrolment.';
+$string['length_subdesc'] = 'How long temporary enrolment of a student will last before automatically expiring';
+$string['onoff_desc'] = 'On/off';
+$string['onoff_subdesc'] = 'Check the box to turn on plugin functionality';
 $string['pluginname'] = 'Temporary enrolments';
 $string['remind_content_default'] = '{SUBJECT: Temporary enrolment reminder for {COURSE}}
 
@@ -56,7 +56,7 @@ $string['remind_onoff_desc'] = 'Reminder email on/off';
 $string['remind_onoff_subdesc'] = 'Check the box to turn reminder emails on or off.';
 $string['remind_task'] = 'Send out temporary enrolment reminder emails';
 $string['roleid_desc'] = 'Temporary enrolment marker role';
-$string['roleid_subdesc'] = 'The role which indicates that an enrolment is temporary. Only applies if you turn off the option above.';
+$string['roleid_subdesc'] = 'The role which indicates that an enrolment is temporary.';
 $string['studentinit_content_default'] = '{SUBJECT: Temporary enrolment granted for {COURSE}}
 
 Dear {STUDENTFIRST},

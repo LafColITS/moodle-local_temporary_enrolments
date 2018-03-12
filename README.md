@@ -16,68 +16,85 @@ A Moodle plugin to manage temporary/provisional course site access for wait-list
 
 ### What you can change in the settings:
 - **On/Off**: While off, no emails are sent, and no automatic expirations take place.
+- **Temporary marker role**: The role which will mark enrolments as temporary. See [Setup](#setup) below for more information.
 - **Duration**: How long the temporary role lasts before it expires.
 - **Reminder email frequency**: How often reminder emails are sent (in days).
 - **Email content**: You can edit the content of all the aforementioned emails. Special tags like `{STUDENTFIRST}` or `{TEACHER}` are used to generate personalized email content.
+- **Existing role assignment behavior**: In the case that the temporary marker role you choose is already assigned to some users, these settings allow you to customize how the plugin handles those existing role assignments. See the [Setup->If you already have a role](#existingroleassignments) section below for more information.
 
-## Setup:
+## Setup: <a name="setup"></a>
 
-1. Create a role to mark temporary enrolments. For example, you might create a role with shortname "temporary_enrolment" and fullname "Temporarily Enrolled".
-2. Give the role whatever permissions you want, and configure it in any other way you please.
+1. Create a role to mark temporary enrolments. For example, you might create a role with shortname `temporary_enrolment` and fullname "Temporarily Enrolled".
+2. Give the role whatever permissions you want, and configure it in any other way you please -- as long as it is assignable in a course context.
 3. Install this plugin.
-4. On the settings page, select the role you created in step 1 under "Temporary enrolment role".
-5. Press `Save changes`.
+4. On the settings page, select the role you created in Step 1 under `Temporary enrolment marker role` in the `Main` tab.
+5. Configure any other settings you wish to change; for example, the duration of temporary enrolments, or the content of emails (look under the `Email` tab).
+6. Press `Save changes`.
 
-### If you already have a role:
+### If you already have a role: <a name="existingroleassignments"></a>
 
 If you already have a role that marks wait-listed, unregistered, or other students with provisional course access, and you want to use that role as the temporary enrolment marker for the Temporary Enrolments Plugin:
 
-1. Select that role in the settings page under "Temporary enrolment role" after install.
-2. Choose your options for the behavior of existing role assignments being brought under management of the Temporary Enrolments Plugin:
+1. Select your role in the settings page under `Temporary enrolment marker role` in the `Main` tab after install.
+2. In the `Existing Role Assignments` tab, choose your options for the behavior of existing role assignments being brought under management of the Temporary Enrolments Plugin:
     1. Do you __want__ existing role assignments of the chosen, pre-existing temporary marker role to become temporary and under the management of this plugin, or do you want those pre-existing assignments to remain as they were? (New assignments of the temporary role __will__ still be managed by the plugin.)
-    2. Do you want initial emails sent out to the users to whom the role was previously assigned?
-    3. Do you want the duration of the temporary enrolment to start from the time that pre-existing role assignments were created, or start from now?
+    2. Do you want initial emails sent out to the users to whom the role is currently assigned?
+    3. Do you want the duration of the temporary enrolments for existing role assignments to start from the time that those pre-existing role assignments were created, or to start from now?
 3. Press `Save changes`.
 
 ## Directory Overview
 
+### /
+
+#### `settings.php`
+
+Defines the admin settings page. [Useful doc page on theme settings pages (similar to plugin settings pages).](https://docs.moodle.org/dev/Creating_a_theme_settings_page) Settings page uses tabs -- `theme_boost_admin_settingspage_tabs` is mentioned in the link; for detailed implementation, find a settings page that already uses `theme_boost_admin_settingspage_tabs`. Settings page also uses `$setting->set_updatedcallback` to react to config changes; this method has little documentation but does exactly what it sounds like.
+
+#### `lib.php`
+
+Various functions required by the plugin.
+#### `version.php`
+
+[See here if you don't know what `version.php` is for.](https://docs.moodle.org/dev/version.php)
+
 ### classes
 
 #### tasks
+[Moodle Scheduled Tasks API](https://docs.moodle.org/34/en/Scheduled_tasks)
 
-- `expire_task.php`: the cron task that deletes expired  `temporary_enrolment`s
+- `expire_task.php`: the cron task that deletes expired  `temporary_enrolment`s.
 - `remind_task.php`: the cron task that sends reminder emails.
 
 #### observers.php
 
-Functions that respond to role assignments and unassignments, and perform plugin functions as necessary.
+Functions that respond to role assignments and unassignments, and perform plugin functions as necessary. [Moodle Events API](https://docs.moodle.org/dev/Event_2)
 
 ### db
 
-#### events.php
+#### `events.php`
 
-Maps out events to 'listen' for and the corresponding callbacks (callback functions are in `classes/observers.php`).
+Maps out events to 'listen' for and the corresponding callbacks (callback functions are in `classes/observers.php`). [Moodle Events API](https://docs.moodle.org/dev/Event_2)
 
-#### tasks.php
+#### `tasks.php`
 
-Details plugin cron tasks to run, and how often. Tasks are contained in `classes/task`.
+Details plugin cron tasks to run, and how often. Tasks are contained in `classes/task`. [Moodle Scheduled Tasks API](https://docs.moodle.org/34/en/Scheduled_tasks)
 
-#### install.xml
+#### `install.xml`
 
 Database schema for setting up tables when installed.
 
-### lang/en
+### lang
 
-#### local_temporary_enrolments.php
+#### en/`local_temporary_enrolments.php`
 
 All the lang strings for the plugin. [Moodle String API](https://docs.moodle.org/dev/String_API "Moodle String API")
 
 ### tests
 
-#### temporary_enrolments_test.php
+#### `temporary_enrolments_test.php`
 
-Tests to run with Moodle's built in. [PHPUnit](https://docs.moodle.org/dev/PHPUnit "PHPUnit") testing engine.
+Tests to run with Moodle's built in [PHPUnit](https://docs.moodle.org/dev/PHPUnit "PHPUnit") testing engine.
 
-#### behat
+#### behat/`temporary_enrolments.feature`
 
-- `temporary_enrolments.feature` : a behat feature test. [Behat](http://behat.org/en/latest/ "Behat") is a third-party PHP testing framework
+A behat feature test. [Behat](http://behat.org/en/latest/ "Behat") is a third-party PHP testing framework.
