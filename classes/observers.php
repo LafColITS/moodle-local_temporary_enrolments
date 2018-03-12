@@ -141,18 +141,13 @@ class observers {
 
             if ($event->objectid == $role->id) {
                 $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $event->other['id']));
-                if ($expiration) {
-                    if (!$expiration->upgraded) { // Check if the enrolment was removed by upgrade().
-                        // Send expire email.
-                        if ($CFG->local_temporary_enrolments_expire_onoff) {
-                            $assignerid = $event->userid;
-                            $assigneeid = $event->relateduserid;
-                            $courseid = $event->courseid;
-                            $raid = $event->other['id'];
-                            $which = 'expire';
-                            send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
-                        }
-                    }
+                if (gettype($expiration) == 'object' && !$expiration->upgraded) { // Check if the enrolment was removed by upgrade().
+                    $assignerid = $event->userid;
+                    $assigneeid = $event->relateduserid;
+                    $courseid = $event->courseid;
+                    $raid = $event->other['id'];
+                    $which = 'expire';
+                    send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
                 }
 
                 // Remove manual enrolment if there are no roles...
