@@ -153,8 +153,15 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $sink->close();
         $results = $sink->get_messages();
 
+        $this->assertEquals(count($results), 2);
+
+        // Get whichever email was for Harry so we know what to check for.
+        $check = array_filter($results, function($email) {
+          return strpos($email->body, 'Harry') !== false;
+        });
+
         $body = array('Dear Harry', 'temporary access to the Moodle site for '.$data['course']->fullname);
-        $this->email_has($results[0], $body, 'Temporary enrolment granted for '.$data['course']->fullname, 'hpindahouse@hogwarts.owl');
+        $this->email_has($check[0], $body, 'Temporary enrolment granted for '.$data['course']->fullname, 'hpindahouse@hogwarts.owl');
 
         // And if the email option is turned off?
         set_config('local_temporary_enrolments_existingassignments_email', 0);

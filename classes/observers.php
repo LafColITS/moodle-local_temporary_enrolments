@@ -141,7 +141,7 @@ class observers {
 
             if ($event->objectid == $role->id) {
                 $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $event->other['id']));
-                if (gettype($expiration) == 'object' && !$expiration->upgraded) { // Check if the enrolment was removed by upgrade().
+                if (gettype($expiration) == 'object' && !$expiration->upgraded && $CFG->local_temporary_enrolments_expire_onoff) { // Check if the enrolment was removed by upgrade().
                     $assignerid = $event->userid;
                     $assigneeid = $event->relateduserid;
                     $courseid = $event->courseid;
