@@ -44,46 +44,39 @@ class observers {
     public static function initialize($event) {
         global $DB, $CFG;
 
-        if (!$CFG->local_temporary_enrolments_onoff) {
+        $role = get_temp_role();
+        if (!$CFG->local_temporary_enrolments_onoff || $event->objectid != $role->id) {
             return;
         }
 
-        // Get temporary_enrolment role.
-        $role = get_temp_role();
+        // Break out event data into semantic/shorter variables.
+        $assigner = $event->userid;
+        $assignee = $event->relateduserid;
+        $assignedrole = $event->objectid;
+        $context = $event->contextid;
+        $course = $event->courseid;
+        $roleassignment = $event->other['id'];
 
-        if ($event->objectid == $role->id) {
+        $allroles = $DB->get_records('role_assignments', array('userid' => $assignee, 'contextid' => $context));
 
-            $ruid = $event->relateduserid;
-            $cid = $event->contextid;
-            $allroles = $DB->get_records('role_assignments', array('userid' => $ruid, 'contextid' => $cid));
+        if (count($allroles) > 1) {
+            role_unassign($role->id, $assignee, $context);
+        } else {
 
-            if (count($allroles) > 1) {
-                role_unassign($role->id, $event->relateduserid, $event->contextid);
-            } else {
-
-                // Send STUDENT initial email.
-                if ($CFG->local_temporary_enrolments_studentinit_onoff) {
-                    $assignerid = $event->userid;
-                    $assigneeid = $event->relateduserid;
-                    $courseid = $event->courseid;
-                    $raid = $event->other['id'];
-                    $which = 'studentinit';
-                    send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
-                }
-
-                // Send TEACHER initial email.
-                if ($CFG->local_temporary_enrolments_teacherinit_onoff) {
-                    $assignerid = $event->userid;
-                    $assigneeid = $event->relateduserid;
-                    $courseid = $event->courseid;
-                    $raid = $event->other['id'];
-                    $which = 'teacherinit';
-                    send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which, 'assignerid');
-                }
-
-                // Set expiration time.
-                add_to_custom_table($event->other['id'], $event->objectid, $event->timecreated);
+            // Send STUDENT initial email.
+            if ($CFG->local_temporary_enrolments_studentinit_onoff) {
+                $which = 'studentinit';
+                send_temporary_enrolments_email($assigner, $assignee, $course, $roleassignment, $which);
             }
+
+            // Send TEACHER initial email.
+            if ($CFG->local_temporary_enrolments_teacherinit_onoff) {
+                $which = 'teacherinit';
+                send_temporary_enrolments_email($assigner, $assignee, $course, $roleassignment, $which, 'assignerid');
+            }
+
+            // Set expiration time.
+            add_to_custom_table($roleassignment, $assignedrole, $event->timecreated);
         }
     }
 
@@ -96,41 +89,39 @@ class observers {
     public static function upgrade($event) {
         global $DB, $CFG;
 
-        if (!$CFG->local_temporary_enrolments_onoff) {
+        $role = get_temp_role();
+        if (!$CFG->local_temporary_enrolments_onoff || $event->objectid == $role->id) {
             return;
         }
 
-        // Get temporary_enrolment role.
-        $role = get_temp_role();
+        // Break out event data into semantic/shorter variables.
+        $assigner = $event->userid;
+        $assignee = $event->relateduserid;
+        $assignedrole = $event->objectid;
+        $context = $event->contextid;
+        $course = $event->courseid;
+        $roleassignment = $event->other['id'];
 
         // Does student have temporary role?
-        $ruid = $event->relateduserid;
-        $cid = $event->contextid;
-        $hasrole = $DB->record_exists('role_assignments', array('userid' => $ruid, 'contextid' => $cid, 'roleid' => $role->id));
+        $where = array('userid' => $assignee, 'contextid' => $context, 'roleid' => $role->id);
+        $hasrole = $DB->record_exists('role_assignments', $where);
 
-        // If student has temp role AND the flatfile enrolment was of a different role.
-        if ($event->objectid != $role->id && $hasrole) {
+        // If student has temp role...
+        if ($hasrole) {
             // Send upgrade email.
             if ($CFG->local_temporary_enrolments_upgrade_onoff) {
-                $assignerid = $event->userid;
-                $assigneeid = $event->relateduserid;
-                $courseid = $event->courseid;
-                $raid = $event->other['id'];
                 $which = 'upgrade';
-                send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
+                send_temporary_enrolments_email($assigner, $assignee, $course, $roleassignment, $which);
             }
 
             // Remove temp role and update the entry in our custom table.
-            $ruid = $event->relateduserid;
-            $cid = $event->contextid;
-            $rid = $role->id;
-            $rassignment = $DB->get_record('role_assignments', array('userid' => $ruid, 'contextid' => $cid, 'roleid' => $rid));
-            $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $rassignment->id));
+            $roleassignment = $DB->get_record('role_assignments', $where); // We can reuse the WHERE array from earlier.
+            $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $roleassignment->id));
             $update = new stdClass();
             $update->id = $expiration->id;
             $update->upgraded = 1;
             $DB->update_record('local_temporary_enrolments', $update);
-            role_unassign($role->id, $event->relateduserid, $event->contextid);
+            role_unassign($role->id, $assignee, $context);
         }
     }
 
@@ -146,8 +137,17 @@ class observers {
         $role = get_temp_role();
         // Is this an event involving the temporary role?
         if ($event->objectid == $role->id) {
+
+            // Break out event data into semantic/shorter variables.
+            $assigner = $event->userid;
+            $assignee = $event->relateduserid;
+            $assignedrole = $event->objectid;
+            $context = $event->contextid;
+            $course = $event->courseid;
+            $roleassignment = $event->other['id'];
+
             // Remove entry from our custom table (but save it for later in this function).
-            $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $event->other['id']));
+            $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $roleassignment));
             if ($expiration) {
                 $DB->delete_records('local_temporary_enrolments', array('id' => $expiration->id));
             }
@@ -162,29 +162,23 @@ class observers {
 
         // Check if the enrolment was removed by upgrade(), and if not, send expiration email.
         if (gettype($expiration) == 'object' && !$expiration->upgraded && $CFG->local_temporary_enrolments_expire_onoff) {
-            $assignerid = $event->userid;
-            $assigneeid = $event->relateduserid;
-            $courseid = $event->courseid;
-            $raid = $event->other['id'];
             $which = 'expire';
-            send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
+            send_temporary_enrolments_email($assigner, $assignee, $course, $roleassignment, $which);
         }
 
         // Remove manual enrolment if there are no roles...
         $plugin = new \enrol_manual_plugin();
-        $manualenrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $event->courseid));
-        $ruid = $event->relateduserid;
-        $cid = $event->contextid;
-        if (!$DB->record_exists('role_assignments',  array('userid' => $ruid, 'contextid' => $cid))) {
-            $plugin->unenrol_user($manualenrol, $event->relateduserid);
+        $manualenrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $course));
+        if (!$DB->record_exists('role_assignments',  array('userid' => $assignee, 'contextid' => $context))) {
+            $plugin->unenrol_user($manualenrol, $assignee);
         } else {
             // ...or else if there are other enrolments.
             $sql = "SELECT * FROM {user_enrolments} ";
             $sql .= "INNER JOIN {enrol} ON {user_enrolments}.enrolid={enrol}.id ";
-            $sql .= "WHERE {user_enrolments}.userid=$event->relateduserid AND {enrol}.courseid=$event->courseid";
+            $sql .= "WHERE {user_enrolments}.userid=$assignee AND {enrol}.courseid=$course";
             $userenrols = $DB->get_records_sql($sql);
             if (count($userenrols) > 1) {
-                $plugin->unenrol_user($manualenrol, $event->relateduserid);
+                $plugin->unenrol_user($manualenrol, $assignee);
             }
         }
     }
