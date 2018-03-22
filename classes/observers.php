@@ -169,15 +169,9 @@ class observers {
                 $plugin->unenrol_user($manualenrol, $event->relateduserid);
             } else {
                 // ...or else if there are other enrolments.
-                $sql = "SELECT * FROM {user_enrolments} WHERE userid=$event->relateduserid and (";
-                $enrols = $DB->get_records('enrol', array('courseid' => $event->courseid));
-                $enrolids = array();
-                foreach ($enrols as $enrol) {
-                    array_push($enrolids, "enrolid=".$enrol->id);
-                }
-                $s = implode(' or ', $enrolids);
-                $sql = $sql.$s.')';
-
+                $sql = "SELECT * FROM {user_enrolments} ";
+                $sql .= "INNER JOIN {enrol} ON {user_enrolments}.enrolid={enrol}.id ";
+                $sql .= "WHERE {user_enrolments}.userid=$event->relateduserid AND {enrol}.courseid=$event->courseid";
                 $userenrols = $DB->get_records_sql($sql);
                 if (count($userenrols) > 1) {
                     $plugin->unenrol_user($manualenrol, $event->relateduserid);
