@@ -122,6 +122,18 @@ function get_temp_role() {
     }
 }
 
+function handle_update_length(){
+    global $DB;
+    update_length($DB->get_record('config', array('name' => 'local_temporary_enrolments_length'))->value);
+}
+
+function handle_update_reminder_freq() {
+    global $DB;
+    $remindfreq = $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq'));
+    $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
+    update_remind_freq($task, $remindfreq);
+}
+
 function handle_existing_assignments() {
     global $DB, $CFG;
     // Wipe any outdated entries in the custom table.

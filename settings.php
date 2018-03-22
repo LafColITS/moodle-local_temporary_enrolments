@@ -54,10 +54,7 @@ if ($hassiteconfig) {
         get_string('length_subdesc', 'local_temporary_enrolments'),
         $defaultsetting = 1209600,
         $defaultunit = 604800);
-    $temp->set_updatedcallback(function(){
-        global $DB;
-        update_length($DB->get_record('config', array('name' => 'local_temporary_enrolments_length'))->value);
-    });
+    $temp->set_updatedcallback('handle_update_length');
     $page->add($temp);
 
     $settings->add($page);
@@ -72,12 +69,7 @@ if ($hassiteconfig) {
         $defaultsetting = '2',
         $paramtype = "/^0*[1-9]{1,2}$/",
         $size = 1);
-    $temp->set_updatedcallback(function() {
-        global $DB;
-        $remindfreq = $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq'));
-        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
-        update_remind_freq($task, $remindfreq);
-    });
+    $temp->set_updatedcallback('handle_update_reminder_freq');
     $page->add($temp);
 
     // Emails on/off.
