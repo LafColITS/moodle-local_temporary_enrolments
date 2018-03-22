@@ -33,34 +33,103 @@ use local_temporary_enrolments\task\expire_task;
 
 class local_temporary_enrolments_testcase extends advanced_testcase {
 
+    public $eventid = 100;
+
     /**
      * Make various data objects that all the functions need to use
      *
      * @return array of data objects
      */
-    public function make() {
+    public function setUp() {
         global $DB;
-        set_config('local_temporary_enrolments_onoff', 1);
-        $testrole = $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role'));
-        set_config('local_temporary_enrolments_roleid', $testrole);
+
+        // Config.
         unset_config('noemailever');
 
-        $teacher = $this->getDataGenerator()->create_user(array(
+        $this->data = array();
+
+        // Temporary enrolment role.
+        $this->data['temprole'] = $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role'));
+        set_config('local_temporary_enrolments_roleid', $this->data['temprole']);
+
+        // Test teacher user.
+        $this->data['teacher'] = $this->getDataGenerator()->create_user(array(
             'username'  => 'teacher',
             'email'     => 'teacher@example.com',
             'firstname' => 'Tea',
             'lastname'  => 'Cher',
         ));
-        $student = $this->getDataGenerator()->create_user(array(
+
+        // Test student user.
+        $this->data['student'] = $this->getDataGenerator()->create_user(array(
             'username'  => 'student',
             'email'     => 'student@example.com',
             'firstname' => 'Stu',
             'lastname'  => 'Dent',
         ));
-        $this->setUser($teacher);
-        $course = $this->getDataGenerator()->create_course(array('shortname' => 'testcourse'));
-        $role = get_temp_role();
-        return array('teacher' => $teacher, 'student' => $student, 'course' => $course, 'role' => $role->id);
+
+        // Test course.
+        $this->data['course'] = $this->getDataGenerator()->create_course(array('shortname' => 'testcourse'));
+        // Manual enrolment entry.
+        $this->data['manualenrol'] = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $this->data['course']->id));
+        // Self enrolment entry.
+        $this->data['selfenrol'] = $DB->get_record('enrol', array('enrol' => 'self', 'courseid' => $this->data['course']->id));
+        // Manual enrolment plugin (will use manual enrolment entry to enrol users in course context).
+        $this->data['me_plugin'] = new enrol_manual_plugin();
+        // Self enrolment plugin (will use self enrolment entry to enrol users in course context).
+        $this->data['se_plugin'] = new enrol_self_plugin();
+        // Course context for use in enrolments.
+        $this->data['coursecontext'] = \context_course::instance($this->data['course']->id);
+        // The student role.
+        $this->data['studentrole'] = $DB->get_record('role', array('shortname' => 'student'))->id;
+
+        $this->setUser($this->data['teacher']);
+    }
+
+    /**
+     * Reset anything that might be left between loops.
+     * Most of the tests loop twice, to test with the plugin on and with it off.
+     * This ensures (hopefully) that nothing interferes between iterations.
+     *
+     * @return array of data objects
+     */
+    public function reset() {
+        global $DB;
+        $resetsink = $this->redirectEmails();
+
+        // Unenrol any users that are enrolled.
+        $roleassignments = $DB->get_records('role_assignments');
+        if ($roleassignments) {
+            foreach ($roleassignments as $ra) {
+                $this->data['me_plugin']->unenrol_user($this->data['manualenrol'], $ra->userid);
+                $this->data['se_plugin']->unenrol_user($this->data['selfenrol'], $ra->userid);
+            }
+        }
+
+        // Rip out any leftover data.
+        $DB->delete_records('role_assignments');
+        $DB->delete_records('user_enrolments');
+        $DB->delete_records('local_temporary_enrolments');
+
+        // Config defaults.
+        set_config('local_temporary_enrolments_onoff', 1);
+        set_config('local_temporary_enrolments_studentinit_onoff', 1);
+        set_config('local_temporary_enrolments_teacherinit_onoff', 1);
+        set_config('local_temporary_enrolments_expire_onoff', 1);
+        set_config('local_temporary_enrolments_remind_onoff', 1);
+        set_config('local_temporary_enrolments_upgrade_onoff', 1);
+        set_config('local_temporary_enrolments_length', 1209600);
+        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
+        $update = new stdClass();
+        $update->id = $task->id;
+        $update->minute = '0';
+        $update->hour = '8';
+        $update->day = '*/2';
+        $update->month = '*';
+        $update->dayofweek = '*';
+        $DB->update_record('task_scheduled', $update);
+
+        $resetsink->close();
     }
 
     /**
@@ -68,7 +137,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
      *
      * @return void
      */
-    public function email_has($email, $body, $subject, $to) {
+    public function emailHas($email, $body, $subject, $to) {
         $this->assertContains('Auto-Submitted: auto-generated', $email->header);
         $this->assertContains('noreply@', $email->from);
         foreach ($body as $s) {
@@ -79,54 +148,105 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
     }
 
     /**
+     * Does initialize() insert an expiration entry into our custom table?
+     * Does it NOT do so when the plugin is off?
+     *
+     * @return void
+     */
+    public function test_init_insert_expiration_entry() {
+        $this->resetAfterTest();
+        global $DB;
+
+        for ($i = 0; $i <= 1; $i++) {
+            set_config('local_temporary_enrolments_onoff', $i);
+
+            $event = \core\event\role_assigned::create(array(
+                'context' => $this->data['coursecontext'],
+                'objectid' => $this->data['temprole'],
+                'relateduserid' => $this->data['student']->id,
+                'other' => array(
+                    'id' => 123,
+                    'component' => 'manual',
+                ),
+            ));
+
+            $customtable = $DB->get_records('local_temporary_enrolments');
+
+            // Table should be empty.
+            $this->assertEquals(0, count($customtable));
+
+            // Assign temp role.
+            $sink = $this->redirectEmails();
+            $event->trigger();
+            $sink->close();
+
+            $customtable = $DB->get_records('local_temporary_enrolments');
+            // Plugin off...
+            if ($i == 0) {
+                // Should still be empty.
+                $this->assertEquals(0, count($customtable));
+            // Plugin on...
+            } else {
+                // Now should have 1 entry.
+                $this->assertEquals(1, count($customtable));
+                // Testing stored values.
+                $expiration = $customtable[array_keys($customtable)[0]];
+                $this->assertEquals($event->other['id'], $expiration->roleassignid);
+                $this->assertEquals(0, $expiration->upgraded);
+            }
+            $this->reset();
+        }
+    }
+
+    /**
      * Does selecting a marker role with existing assignments corrrectly switch out custom table entries?
+     * And... a bunch of other stuff
      *
      * @return void
      */
     public function test_existing_assignments_behavior() {
         $this->resetAfterTest();
-        global $DB, $CFG;
+        global $DB;
 
-        $data = $this->make();
-        $data['students'] = array();
+        set_config('local_temporary_enrolments_onoff', 1);
 
-        $data['students']['Hermione'] = $this->getDataGenerator()->create_user(array(
+        $students = array();
+
+        $students['Hermione'] = $this->getDataGenerator()->create_user(array(
             'username'  => 'hermione',
             'email'     => 'hermione@hogwarts.owl',
             'firstname' => 'Hermione',
             'lastname'  => 'Granger',
         ));
-        $data['students']['Harry'] = $this->getDataGenerator()->create_user(array(
+        $students['Harry'] = $this->getDataGenerator()->create_user(array(
             'username'  => 'daboywholived',
             'email'     => 'hpindahouse@hogwarts.owl',
             'firstname' => 'Harry',
             'lastname'  => 'Potter',
         ));
-        $data['students']['Ron'] = $this->getDataGenerator()->create_user(array(
+        $students['Ron'] = $this->getDataGenerator()->create_user(array(
             'username'  => 'ronronron',
             'email'     => 'roonilwazlib@hogwarts.owl',
             'firstname' => 'Ronald',
             'lastname'  => 'Weasley',
         ));
-        $data['students']['Luna'] = $this->getDataGenerator()->create_user(array(
+        $students['Luna'] = $this->getDataGenerator()->create_user(array(
             'username'  => 'luna',
             'email'     => 'crumplehornedluna@hogwarts.owl',
             'firstname' => 'Luna',
             'lastname'  => 'Lovegood',
         ));
 
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $context = \context_course::instance($data['course']->id);
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
-        $testrole1 = $data['role'];
+        $testrole1 = $this->data['temprole'];
         $testrole2 = $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role2'));
 
         // Enrol half as temp role 1, half as temp role 2.
-        $e->enrol_user($enrol, $data['students']['Harry']->id, $testrole1);
-        $e->enrol_user($enrol, $data['students']['Hermione']->id, $testrole1);
-        $e->enrol_user($enrol, $data['students']['Ron']->id, $testrole2);
-        $e->enrol_user($enrol, $data['students']['Luna']->id, $testrole2);
+        $sink = $this->redirectEmails();
+        $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $students['Harry']->id, $testrole1);
+        $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $students['Hermione']->id, $testrole1);
+        $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $students['Ron']->id, $testrole2);
+        $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $students['Luna']->id, $testrole2);
+        $sink->close();
 
         // Right now temp role is test_role_1, right?
         $currententries = $DB->get_records('local_temporary_enrolments');
@@ -137,7 +257,10 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         // And if we switch up the config and run handle_existing_assignments...
         set_config('local_temporary_enrolments_roleid', $testrole2);
         // Temp role is now test_role2.
+        $sink = $this->redirectEmails();
         handle_existing_assignments();
+        $sink->close();
+
         $currententries = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(2, count($currententries));
         $currententries = $DB->get_records('local_temporary_enrolments', array('roleid' => $testrole2));
@@ -145,11 +268,10 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         // ... it correctly grabs new role assignments, yay!
 
         // What about emails?
-        $sink = $this->redirectEmails();
-
         set_config('local_temporary_enrolments_roleid', $testrole1);
-        handle_existing_assignments();
 
+        $sink = $this->redirectEmails();
+        handle_existing_assignments();
         $sink->close();
         $results = $sink->get_messages();
 
@@ -160,16 +282,16 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
             return strpos($email->body, 'Harry') !== false;
         });
 
-        $body = array('Dear Harry', 'temporary access to the Moodle site for '.$data['course']->fullname);
-        $this->email_has($check[0], $body, 'Temporary enrolment granted for '.$data['course']->fullname, 'hpindahouse@hogwarts.owl');
+        $body = array('Dear Harry', 'temporary access to the Moodle site for '.$this->data['course']->fullname);
+        $subject = 'Temporary enrolment granted for '.$this->data['course']->fullname;
+        $this->emailHas($check[0], $body, $subject, 'hpindahouse@hogwarts.owl');
 
         // And if the email option is turned off?
         set_config('local_temporary_enrolments_existingassignments_email', 0);
-        $sink = $this->redirectEmails();
-
         set_config('local_temporary_enrolments_roleid', $testrole2);
-        handle_existing_assignments();
 
+        $sink = $this->redirectEmails();
+        handle_existing_assignments();
         $sink->close();
         $results = $sink->get_messages();
 
@@ -178,7 +300,11 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         // Start time: at creation.
         set_config('local_temporary_enrolments_existingassignments_start', 0);
         set_config('local_temporary_enrolments_roleid', $testrole1);
+
+        $sink = $this->redirectEmails();
         handle_existing_assignments();
+        $sink->close();
+
         $currententries = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(2, count($currententries));
         foreach ($currententries as $entry) {
@@ -190,7 +316,11 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         sleep(10); // To ensure a time gap between role assignment and this bit of the test.
         set_config('local_temporary_enrolments_existingassignments_start', 1);
         set_config('local_temporary_enrolments_roleid', $testrole2);
+
+        $sink = $this->redirectEmails();
         handle_existing_assignments();
+        $sink->close();
+
         $currententries = $DB->get_records('local_temporary_enrolments');
         $this->assertEquals(2, count($currententries));
         $now = time();
@@ -203,518 +333,317 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
     }
 
     /**
-     * Does initialize() insert an expiration entry into our custom table?
-     *
-     * @return void
-     */
-    public function test_init_insert_expiration_entry() {
-        $this->resetAfterTest();
-        global $DB, $CFG;
-
-        $data = $this->make();
-
-        $context = \context_course::instance($data['course']->id);
-        $event = \core\event\role_assigned::create(array(
-            'context' => $context,
-            'objectid' => $data['role'],
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => 123,
-                'component' => 'manual',
-            ),
-        ));
-
-        $customtable = $DB->get_records('local_temporary_enrolments');
-        $this->assertEquals(0, count($customtable)); // Table should be empty.
-
-        $event->trigger();
-
-        $customtable = $DB->get_records('local_temporary_enrolments');
-        $expiration = $customtable[array_keys($customtable)[0]];
-        $this->assertEquals(1, count($customtable)); // Now should have 1 entry.
-        $this->assertEquals($event->other['id'], $expiration->roleassignid);
-        $this->assertEquals(0, $expiration->upgraded);
-    }
-
-    /**
-     * With the plugin turned OFF:
-     * Does initialize() NOT insert an expiration entry into our custom table?
-     *
-     * @return void
-     */
-    public function test_init_insert_expiration_entry_off() {
-        $this->resetAfterTest();
-        global $DB, $CFG;
-
-        $data = $this->make();
-
-        set_config('local_temporary_enrolments_onoff', 0);
-
-        $context = \context_course::instance($data['course']->id);
-        $event = \core\event\role_assigned::create(array(
-            'context' => $context,
-            'objectid' => $data['role'],
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => 123,
-                'component' => 'manual',
-            ),
-        ));
-
-        $customtable = $DB->get_records('local_temporary_enrolments');
-        $this->assertEquals(0, count($customtable)); // Table should be empty.
-
-        $event->trigger();
-
-        $customtable = $DB->get_records('local_temporary_enrolments');
-        $this->assertEquals(0, count($customtable)); // Table should STILL be empty.
-    }
-
-    /**
      * Does initialize() automatically remove temporary enrolments if there is already another role?
+     * Does it NOT do that when the plugin is off?
      *
      * @return void
      */
     public function test_init_remove_redundant_temp_enrol() {
         $this->resetAfterTest();
-        global $DB, $CFG;
+        global $DB;
 
-        $data = $this->make();
+        for ($i = 0; $i <= 1; $i++) {
+            set_config('local_temporary_enrolments_onoff', $i);
 
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $selfenrol = $DB->get_record('enrol', array('enrol' => 'self', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $se = new enrol_self_plugin();
-        $context = \context_course::instance($data['course']->id);
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+            // Self enrol student.
+            $sink = $this->redirectEmails();
+            $this->data['se_plugin']->enrol_user($this->data['selfenrol'], $this->data['student']->id, $this->data['studentrole']);
+            $sink->close();
 
-        $se->enrol_user($selfenrol, $data['student']->id, $studentrole->id);
-        $roles = $DB->get_records('role_assignments');
-        $this->assertEquals(1, count($roles));
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-        $this->assertEquals(1, count($roles));
+            $roles = $DB->get_records('role_assignments');
+            $this->assertEquals(1, count($roles));
+
+            // When we try to manually enrol same user as temp, temp role should be removed (if plugin on).
+            $sink = $this->redirectEmails();
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
+            $sink->close();
+
+            $roles = $DB->get_records('role_assignments');
+            $expected = $i == 1 ? 1 : 2;
+            $this->assertEquals($expected, count($roles));
+
+            $this->reset();
+        }
     }
 
     /**
      * Does initialize() correctly email student and teacher?
+     * Does it correctly NOT do so when the plugin is off?
+     * How about when one or the other of the emails is turned off?
      *
      * @return void
      */
     public function test_init_emails() {
         $this->resetAfterTest();
-        global $DB, $CFG;
+        global $DB;
 
-        $data = $this->make();
+        for ($i = 0; $i <= 1; $i++) {
+            set_config('local_temporary_enrolments_onoff', $i);
 
-        $sink = $this->redirectEmails();
+            $event = \core\event\role_assigned::create(array(
+                'context' => $this->data['coursecontext'],
+                'objectid' => $this->data['temprole'],
+                'relateduserid' => $this->data['student']->id,
+                'other' => array(
+                    'id' => 123,
+                    'component' => 'manual',
+                ),
+            ));
 
-        $context = \context_course::instance($data['course']->id);
-        $event = \core\event\role_assigned::create(array(
-            'context' => $context,
-            'objectid' => $data['role'],
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => 123,
-                'component' => 'manual',
-            ),
-        ));
+            $sink = $this->redirectEmails();
+            $event->trigger();
+            $sink->close();
+            $results = $sink->get_messages();
 
-        $event->trigger();
-        $sink->close();
-        $results = $sink->get_messages();
+            $expected = $i == 1 ? 2 : 0;
+            $this->assertEquals($expected, count($results));
+            if ($i == 1) {
+                $body = array('Dear Stu', 'temporary access to the Moodle site for '.$this->data['course']->fullname);
+                $this->emailHas($results[0], $body, 'Temporary enrolment granted for '.$this->data['course']->fullname, 'student@');
+                $body = array('Dear Tea', 'You have granted Stu Dent temporary access to '.$this->data['course']->fullname);
+                $subject = 'Temporary enrolment granted to Stu Dent for '.$this->data['course']->fullname;
+                $this->emailHas($results[1], $body, $subject, 'teacher@');
+            }
 
-        $body = array('Dear Stu', 'temporary access to the Moodle site for '.$data['course']->fullname);
-        $this->email_has($results[0], $body, 'Temporary enrolment granted for '.$data['course']->fullname, 'student@');
+            // Studentinit turned off.
+            set_config('local_temporary_enrolments_studentinit_onoff', 0);
+            $event = \core\event\role_assigned::create(array(
+                'context' => $this->data['coursecontext'],
+                'objectid' => $this->data['temprole'],
+                'relateduserid' => $this->data['student']->id,
+                'other' => array(
+                    'id' => 124,
+                    'component' => 'manual',
+                ),
+            ));
 
-        $body = array('Dear Tea', 'You have granted Stu Dent temporary access to '.$data['course']->fullname);
-        $this->email_has($results[1], $body, 'Temporary enrolment granted to Stu Dent for '.$data['course']->fullname, 'teacher@');
+            $sink = $this->redirectEmails();
+            $event->trigger();
+            $sink->close();
+            $results = $sink->get_messages();
 
-        // Studentinit turned off.
-        set_config('local_temporary_enrolments_studentinit_onoff', 0);
-        $event = \core\event\role_assigned::create(array(
-            'context' => $context,
-            'objectid' => $data['role'],
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => 124,
-                'component' => 'manual',
-            ),
-        ));
-        $sink = $this->redirectEmails();
-        $event->trigger();
-        $sink->close();
-        $results = $sink->get_messages();
-        $this->assertEquals(1, count($results));
-        $body = array('Dear Tea', 'You have granted Stu Dent temporary access to '.$data['course']->fullname);
-        $this->email_has($results[0], $body, 'Temporary enrolment granted to Stu Dent for '.$data['course']->fullname, 'teacher@');
+            $expected = $i == 1 ? 1 : 0;
+            $this->assertEquals($expected, count($results));
+            if ($i == 1) {
+                $body = array('Dear Tea', 'You have granted Stu Dent temporary access to '.$this->data['course']->fullname);
+                $subject = 'Temporary enrolment granted to Stu Dent for '.$this->data['course']->fullname;
+                $this->emailHas($results[0], $body, $subject, 'teacher@');
+            }
 
-        // Teacherinit turned off.
-        set_config('local_temporary_enrolments_teacherinit_onoff', 0);
-        set_config('local_temporary_enrolments_studentinit_onoff', 1);
-        $event = \core\event\role_assigned::create(array(
-            'context' => $context,
-            'objectid' => $data['role'],
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => 125,
-                'component' => 'manual',
-            ),
-        ));
-        $sink = $this->redirectEmails();
-        $event->trigger();
-        $sink->close();
-        $results = $sink->get_messages();
-        $this->assertEquals(1, count($results));
-        $body = array('Dear Stu', 'temporary access to the Moodle site for '.$data['course']->fullname);
-        $this->email_has($results[0], $body, 'Temporary enrolment granted for '.$data['course']->fullname, 'student@');
+            // Teacherinit turned off.
+            set_config('local_temporary_enrolments_teacherinit_onoff', 0);
+            set_config('local_temporary_enrolments_studentinit_onoff', 1);
+            $event = \core\event\role_assigned::create(array(
+                'context' => $this->data['coursecontext'],
+                'objectid' => $this->data['temprole'],
+                'relateduserid' => $this->data['student']->id,
+                'other' => array(
+                    'id' => 125,
+                    'component' => 'manual',
+                ),
+            ));
 
-        // Both initial emails off.
-        set_config('local_temporary_enrolments_studentinit_onoff', 0);
-        $event = \core\event\role_assigned::create(array(
-            'context' => $context,
-            'objectid' => $data['role'],
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => 126,
-                'component' => 'manual',
-            ),
-        ));
-        $sink = $this->redirectEmails();
-        $event->trigger();
-        $sink->close();
-        $results = $sink->get_messages();
-        $this->assertEquals(0, count($results));
+            $sink = $this->redirectEmails();
+            $event->trigger();
+            $sink->close();
+            $results = $sink->get_messages();
+
+            $expected = $i == 1 ? 1 : 0;
+            $this->assertEquals($expected, count($results));
+            if ($i == 1) {
+                $body = array('Dear Stu', 'temporary access to the Moodle site for '.$this->data['course']->fullname);
+                $this->emailHas($results[0], $body, 'Temporary enrolment granted for '.$this->data['course']->fullname, 'student@');
+            }
+
+            // Both initial emails off.
+            set_config('local_temporary_enrolments_studentinit_onoff', 0);
+            $event = \core\event\role_assigned::create(array(
+                'context' => $this->data['coursecontext'],
+                'objectid' => $this->data['temprole'],
+                'relateduserid' => $this->data['student']->id,
+                'other' => array(
+                    'id' => 126,
+                    'component' => 'manual',
+                ),
+            ));
+
+            $sink = $this->redirectEmails();
+            $event->trigger();
+            $sink->close();
+            $results = $sink->get_messages();
+            $this->assertEquals(0, count($results));
+
+            $this->reset();
+        }
     }
 
     /**
-     * With plugin turned OFF:
-     * Does initialize() NOT email student and teacher?
-     *
-     * @return void
-     */
-    public function test_init_emails_off() {
-        $this->resetAfterTest();
-        global $DB, $CFG;
-
-        $data = $this->make();
-
-        set_config('local_temporary_enrolments_onoff', 0);
-
-        $sink = $this->redirectEmails();
-
-        $context = \context_course::instance($data['course']->id);
-        $event = \core\event\role_assigned::create(array(
-            'context' => $context,
-            'objectid' => $data['role'],
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => 123,
-                'component' => 'manual',
-            ),
-        ));
-
-        $event->trigger();
-        $sink->close();
-        $results = $sink->get_messages();
-        $this->assertEquals(0, count($results));
-    }
-
-    /**
-     * Does changing the reminder frequency in config update the DB?
+     * Does changing the reminder frequency in config update the DB (regardless of plugin on/off)?
      *
      * @return void
      */
     public function test_remind_frequency_update() {
         $this->resetAfterTest();
-        global $DB, $CFG;
+        global $DB;
 
-        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
-        $this->assertEquals(0, $task->minute);
-        $this->assertEquals(8, $task->hour);
-        $this->assertEquals('*/2', $task->day);
+        for ($i = 0; $i <= 1; $i++) {
+            set_config('local_temporary_enrolments_onoff', $i);
 
-        set_config('local_temporary_enrolments_remind_freq', 4);
-        update_remind_freq($task, $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq')));
+            $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
+            $this->assertEquals(0, $task->minute);
+            $this->assertEquals(8, $task->hour);
+            $this->assertEquals('*/2', $task->day);
 
-        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
-        $this->assertEquals('*/4', $task->day);
-    }
+            set_config('local_temporary_enrolments_remind_freq', 4);
+            update_remind_freq($task, $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq')));
 
-    /**
-     * With plugin turned OFF:
-     * Does changing the reminder frequency in config STILL update the DB?
-     *
-     * @return void
-     */
-    public function test_remind_frequency_update_off() {
-        $this->resetAfterTest();
-        global $DB, $CFG;
+            $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
+            $this->assertEquals('*/4', $task->day);
 
-        set_config('local_temporary_enrolments_onoff', 0);
-
-        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
-        $this->assertEquals(0, $task->minute);
-        $this->assertEquals(8, $task->hour);
-        $this->assertEquals('*/2', $task->day);
-
-        set_config('local_temporary_enrolments_remind_freq', 4);
-        update_remind_freq($task, $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq')));
-
-        $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
-        $this->assertEquals('*/4', $task->day);
+            $this->reset();
+        }
     }
 
     /**
      * Does remind_task() correctly send a reminder email?
+     * Does it correctly NOT send, when plugin is off?
      *
      * @return void
      */
     public function test_remind_emails() {
         $this->resetAfterTest();
-        global $DB, $CFG;
+        global $DB;
 
-        $data = $this->make();
+        for ($i = 0; $i <= 1; $i++) {
+            set_config('local_temporary_enrolments_onoff', $i);
 
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
+            $sink = $this->redirectEmails();
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
+            $sink->close();
 
-        $sink = $this->redirectEmails();
+            $task = new remind_task();
 
-        $task = new remind_task();
-        $task->execute();
+            $sink = $this->redirectEmails();
+            $task->execute();
+            $sink->close();
 
-        $sink->close();
-        $results = $sink->get_messages();
+            $results = $sink->get_messages();
 
-        $body = array('Dear Stu', 'temporary enrolment in '.$data['course']->fullname." will expire", "in 14 days");
-        $this->email_has($results[0], $body, 'Temporary enrolment reminder for '.$data['course']->fullname, 'student@');
+            $expected = $i == 1 ? 1 : 0;
+            $this->assertEquals($expected, count($results));
+            if ($i == 1) {
+                $body = array('Dear Stu', 'temporary enrolment in '.$this->data['course']->fullname." will expire", "in 14 days");
+                $this->emailHas($results[0], $body, 'Temporary enrolment reminder for '.$this->data['course']->fullname, 'student');
+            }
 
-        // Remind emails off.
-        set_config('local_temporary_enrolments_remind_onoff', 0);
-        $sink = $this->redirectEmails();
-        $task->execute();
-        $sink->close();
-        $results = $sink->get_messages();
-        $this->assertEquals(0, count($results));
-    }
+            // Remind emails off.
+            set_config('local_temporary_enrolments_remind_onoff', 0);
+            $sink = $this->redirectEmails();
+            $task->execute();
+            $sink->close();
+            $results = $sink->get_messages();
+            $this->assertEquals(0, count($results));
 
-    /**
-     * With plugin turned OFF:
-     * Does remind_task() NOT send a reminder email?
-     *
-     * @return void
-     */
-    public function test_remind_emails_off() {
-        $this->resetAfterTest();
-        global $DB, $CFG;
-
-        $data = $this->make();
-
-        set_config('local_temporary_enrolments_onoff', 0);
-
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-
-        $sink = $this->redirectEmails();
-
-        $task = new remind_task();
-        $task->execute();
-
-        $sink->close();
-        $results = $sink->get_messages();
-        $this->assertEquals(0, count($results));
+            $this->reset();
+        }
     }
 
     /**
      * Does expire() remove the manual enrolment entry (based on situation)?
+     * Does it NEVER do so when the plugin is off?
      *
      * @return void
      */
     public function test_expire_remove_enrol() {
         $this->resetAfterTest();
-        global $DB, $CFG;
+        global $DB;
 
-        $data = $this->make();
+        for ($i = 0; $i <= 1; $i++) {
+            $sink = $this->redirectEmails();
+            set_config('local_temporary_enrolments_onoff', $i);
 
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $selfenrol = $DB->get_record('enrol', array('enrol' => 'self', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $se = new enrol_self_plugin();
-        $context = \context_course::instance($data['course']->id);
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+            // No roles left: remove.
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
+            role_unassign($this->data['temprole'], $this->data['student']->id, $this->data['coursecontext']->id);
+            $userenrols = $DB->get_records('user_enrolments');
+            $expected = $i == 1 ? 0 : 1;
+            $this->assertEquals($expected, count($userenrols));
 
-        // No roles left: remove.
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-        role_unassign($data['role'], $data['student']->id, $context->id);
-        $userenrols = $DB->get_records('user_enrolments');
-        $this->assertEquals(0, count($userenrols));
+            // Roles left, no other enrols: don't remove.
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
+            role_assign($this->data['studentrole'], $this->data['student']->id, $this->data['coursecontext']->id);
+            // Upgrade unassigns temp role here.
+            $userenrols = $DB->get_records('user_enrolments');
+            $this->assertEquals(1, count($userenrols));
 
-        // Roles left, no other enrols: don't remove.
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-        role_assign($studentrole->id, $data['student']->id, $context->id); // And then upgrade() will unassign temp role.
-        $userenrols = $DB->get_records('user_enrolments');
-        $this->assertEquals(1, count($userenrols));
+            // Roles left, multiple enrols: remove.
+            $this->data['se_plugin']->enrol_user($this->data['selfenrol'], $this->data['student']->id, $this->data['studentrole']);
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
+            // initialize() will immediately unassign temp role because there is already a role there.
+            $userenrols = $DB->get_records('user_enrolments');
+            $expected = $i == 1 ? 1 : 2;
+            $this->assertEquals($expected, count($userenrols));
 
-        // Roles left, multiple enrols: remove.
-        $e->enrol_user($enrol, $data['student']->id, $data['role']); // And then initialize() will immediately unassign temp role because there is already a role there.
-        $userenrols = $DB->get_records('user_enrolments');
-        $this->assertEquals(1, count($userenrols));
-    }
-
-    /**
-     * With plugin turned OFF:
-     * Does expire() NEVER remove the manual enrolment entry?
-     *
-     * @return void
-     */
-    public function test_expire_remove_enrol_off() {
-        $this->resetAfterTest();
-        global $DB, $CFG;
-
-        $data = $this->make();
-
-        set_config('local_temporary_enrolments_onoff', 0);
-
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $selfenrol = $DB->get_record('enrol', array('enrol' => 'self', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $se = new enrol_self_plugin();
-        $context = \context_course::instance($data['course']->id);
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
-
-        // No roles left: DON'T remove.
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-        role_unassign($data['role'], $data['student']->id, $context->id);
-        $userenrols = $DB->get_records('user_enrolments');
-        $this->assertEquals(1, count($userenrols));
-
-        // Roles left, no other enrols: DON'T remove.
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-        role_assign($studentrole->id, $data['student']->id, $context->id);
-        role_unassign($data['role'], $data['student']->id, $context->id);
-        $userenrols = $DB->get_records('user_enrolments');
-        $this->assertEquals(1, count($userenrols));
-
-        // Roles left, multiple enrols: DON'T remove.
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-        $se->enrol_user($selfenrol, $data['student']->id, $studentrole->id);
-        role_unassign($data['role'], $data['student']->id, $context->id);
-        $userenrols = $DB->get_records('user_enrolments');
-        $this->assertEquals(2, count($userenrols));
+            $this->reset();
+            $sink->close();
+        }
     }
 
     /**
      * Does expire() remove the expiration entry from our custom table?
+     * Does it STILL remove it even if the plugin is off?
      *
      * @return void
      */
     public function test_expire_remove_expiration_entry() {
         $this->resetAfterTest();
-        global $DB, $CFG;
+        global $DB;
 
-        $data = $this->make();
+        for ($i = 0; $i <= 1; $i++) {
+            set_config('local_temporary_enrolments_onoff', 1);
 
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $context = \context_course::instance($data['course']->id);
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
 
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
+            $customtable = $DB->get_records('local_temporary_enrolments');
+            $this->assertEquals(1, count($customtable));
 
-        $customtable = $DB->get_records('local_temporary_enrolments');
-        $this->assertEquals(1, count($customtable));
-
-        role_unassign($data['role'], $data['student']->id, $context->id);
-        $customtable = $DB->get_records('local_temporary_enrolments');
-        $this->assertEquals(0, count($customtable));
-    }
-
-    /**
-     * With plugin turned OFF:
-     * Does expire() STILL remove the expiration entry from our custom table?
-     *
-     * @return void
-     */
-    public function test_expire_remove_expiration_entry_off() {
-        $this->resetAfterTest();
-        global $DB, $CFG;
-
-        $data = $this->make();
-
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $context = \context_course::instance($data['course']->id);
-
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-
-        $customtable = $DB->get_records('local_temporary_enrolments');
-        $this->assertEquals(1, count($customtable));
-
-        set_config('local_temporary_enrolments_onoff', 0);
-
-        role_unassign($data['role'], $data['student']->id, $context->id);
-        $customtable = $DB->get_records('local_temporary_enrolments');
-        $this->assertEquals(0, count($customtable));
+            set_config('local_temporary_enrolments_onoff', $i);
+            role_unassign($this->data['temprole'], $this->data['student']->id, $this->data['coursecontext']->id);
+            $customtable = $DB->get_records('local_temporary_enrolments');
+            $this->assertEquals(0, count($customtable));
+        }
     }
 
     /**
      * Do temporary roles automatically expire as expected?
+     * Do they NOT expire when the plugin is off?
      *
      * @return void
      */
     public function test_expire_automatic() {
         $this->resetAfterTest();
-        global $DB, $CFG;
-        set_config('local_temporary_enrolments_length', 5);
+        global $DB;
 
-        $data = $this->make();
+        for ($i = 0; $i <= 1; $i++) {
+            $sink = $this->redirectEmails();
+            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('local_temporary_enrolments_length', 5);
 
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $context = \context_course::instance($data['course']->id);
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
+            $roleassignments = $DB->get_records('role_assignments');
+            $this->assertEquals(1, count($roleassignments));
 
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-        $roleassignments = $DB->get_records('role_assignments');
-        $this->assertEquals(1, count($roleassignments));
+            sleep(5);
+            $task = new expire_task();
+            $task->execute();
 
-        sleep(5);
-        $task = new expire_task();
-        $task->execute();
+            $roleassignments = $DB->get_records('role_assignments');
+            $expected = $i == 1 ? 0 : 1;
+            $this->assertEquals($expected, count($roleassignments));
 
-        $roleassignments = $DB->get_records('role_assignments');
-        $this->assertEquals(0, count($roleassignments));
-    }
-
-    /**
-     * With plugin turned OFF:
-     * Do temporary roles NOT automatically expire?
-     *
-     * @return void
-     */
-    public function test_expire_automatic_off() {
-        $this->resetAfterTest();
-        global $DB, $CFG;
-        set_config('local_temporary_enrolments_length', 5);
-
-        $data = $this->make();
-
-        set_config('local_temporary_enrolments_onoff', 0);
-
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $context = \context_course::instance($data['course']->id);
-
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-        $roleassignments = $DB->get_records('role_assignments');
-        $this->assertEquals(1, count($roleassignments));
-
-        sleep(5);
-        $task = new expire_task();
-        $task->execute();
-
-        $roleassignments = $DB->get_records('role_assignments');
-        $this->assertEquals(1, count($roleassignments));
+            $this->reset();
+            $sink->close();
+        }
     }
 
     /**
@@ -726,279 +655,203 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $this->resetAfterTest();
         global $DB;
 
-        $data = $this->make();
+        for ($i = 0; $i <= 1; $i++) {
+            $sink = $this->redirectEmails();
+            set_config('local_temporary_enrolments_onoff', 1);
 
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
 
-        $expire = $DB->get_record('local_temporary_enrolments', array());
-        $length = $DB->get_record('config', array('name' => 'local_temporary_enrolments_length'));
-        $this->assertEquals($length->value, ($expire->timeend - $expire->timestart));
+            $expire = $DB->get_record('local_temporary_enrolments', array());
+            $length = $DB->get_record('config', array('name' => 'local_temporary_enrolments_length'));
+            $this->assertEquals($length->value, ($expire->timeend - $expire->timestart));
 
-        $newlength = 100;
-        update_length($newlength);
+            set_config('local_temporary_enrolments_onoff', $i);
 
-        $expire = $DB->get_record('local_temporary_enrolments', array());
-        $this->assertEquals($newlength, ($expire->timeend - $expire->timestart));
+            $newlength = 100;
+            update_length($newlength);
+
+            $expire = $DB->get_record('local_temporary_enrolments', array());
+            $this->assertEquals($newlength, ($expire->timeend - $expire->timestart));
+
+            $this->reset();
+            $sink->close();
+        }
     }
 
     /**
      * Does expire() send expiration email?
+     * Does it NOT send when plugin is off?
      *
      * @return void
      */
     public function test_expire_email() {
         $this->resetAfterTest();
-        global $DB, $CFG;
+        global $DB;
 
-        $data = $this->make();
+        for ($i = 0; $i <= 1; $i++) {
+            set_config('local_temporary_enrolments_onoff', $i);
 
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
+            $sink = $this->redirectEmails();
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
+            $sink->close();
 
-        $sink = $this->redirectEmails();
+            $roleassign = $DB->get_record(
+                'role_assignments',
+                array(
+                    'roleid' => $this->data['temprole'],
+                    'contextid' => $this->data['coursecontext']->id,
+                    'userid' => $this->data['student']->id
+                )
+            );
 
-        $context = \context_course::instance($data['course']->id);
-        $roleassign = $DB->get_record('role_assignments', array('roleid' => $data['role'], 'contextid' => $context->id, 'userid' => $data['student']->id));
-        $event = \core\event\role_unassigned::create(array(
-            'context' => $context,
-            'objectid' => $data['role'],
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => $roleassign->id,
-                'component' => 'manual',
-            ),
-        ));
+            $event = \core\event\role_unassigned::create(array(
+                'context' => $this->data['coursecontext'],
+                'objectid' => $this->data['temprole'],
+                'relateduserid' => $this->data['student']->id,
+                'other' => array(
+                    'id' => $roleassign->id,
+                    'component' => 'manual',
+                ),
+            ));
 
-        $event->trigger();
+            $sink = $this->redirectEmails();
+            $event->trigger();
+            $sink->close();
+            $results = $sink->get_messages();
 
-        $sink->close();
-        $results = $sink->get_messages();
+            $expected = $i == 1 ? 1 : 0;
+            $this->assertEquals($expected, count($results));
+            if ($i == 1) {
+                $body = array('Dear Stu', 'access to ' . $this->data['course']->fullname);
+                $subject = 'Temporary enrolment for ' . $this->data['course']->fullname . ' expired';
+                $this->emailHas($results[0], $body, $subject, 'student@');
+            }
 
-        $body = array('Dear Stu', 'access to '.$data['course']->fullname);
-        $this->email_has($results[0], $body, 'Temporary enrolment for '.$data['course']->fullname.' expired', 'student@');
+            // Expire email off.
+            set_config('local_temporary_enrolments_expire_onoff', 0);
+            $sink = $this->redirectEmails();
+            $this->data['me_plugin']->unenrol_user($this->data['manualenrol'], $this->data['student']->id);
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
+            $sink->close();
+            $roleassign = $DB->get_record(
+                'role_assignments',
+                array(
+                    'roleid' => $this->data['temprole'],
+                    'contextid' => $this->data['coursecontext']->id,
+                    'userid' => $this->data['student']->id
+                )
+            );
 
-        // Expire email off.
-        set_config('local_temporary_enrolments_expire_onoff', 0);
-        $sink = $this->redirectEmails();
-        $e->unenrol_user($enrol, $data['student']->id);
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-        $sink->close();
-        $roleassign = $DB->get_record('role_assignments', array('roleid' => $data['role'], 'contextid' => $context->id, 'userid' => $data['student']->id));
-        $event = \core\event\role_unassigned::create(array(
-            'context' => $context,
-            'objectid' => $data['role'],
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => $roleassign->id,
-                'component' => 'manual',
-            ),
-        ));
-        $sink = $this->redirectEmails();
-        $event->trigger();
-        $sink->close();
-        $results = $sink->get_messages();
-        $this->assertEquals(0, count($results));
-    }
+            $event = \core\event\role_unassigned::create(array(
+                'context' => $this->data['coursecontext'],
+                'objectid' => $this->data['temprole'],
+                'relateduserid' => $this->data['student']->id,
+                'other' => array(
+                    'id' => $roleassign->id,
+                    'component' => 'manual',
+                ),
+            ));
+            $sink = $this->redirectEmails();
+            $event->trigger();
+            $sink->close();
+            $results = $sink->get_messages();
+            $this->assertEquals(0, count($results));
 
-    /**
-     * With plugin turned OFF:
-     * Does expire() NOT send expiration email?
-     *
-     * @return void
-     */
-    public function test_expire_email_off() {
-        $this->resetAfterTest();
-        global $DB, $CFG;
-
-        $data = $this->make();
-
-        set_config('local_temporary_enrolments_onoff', 0);
-
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-
-        $sink = $this->redirectEmails();
-
-        $context = \context_course::instance($data['course']->id);
-        $roleassign = $DB->get_record('role_assignments', array('roleid' => $data['role'], 'contextid' => $context->id, 'userid' => $data['student']->id));
-        $event = \core\event\role_unassigned::create(array(
-            'context' => $context,
-            'objectid' => $data['role'],
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => $roleassign->id,
-                'component' => 'manual',
-            ),
-        ));
-
-        $event->trigger();
-
-        $sink->close();
-        $results = $sink->get_messages();
-        $this->assertEquals(0, count($results));
+            $this->reset();
+        }
     }
 
     /**
      * Does upgrade() unassign the temporary role?
+     * Does it NOT unassign the temporary role if the plugin is off?
      *
      * @return void
      */
     public function test_upgrade_remove_role() {
         $this->resetAfterTest();
-        global $DB, $CFG;
+        global $DB;
 
-        $data = $this->make();
+        for ($i = 0; $i <= 1; $i++) {
+            $sink = $this->redirectEmails();
+            set_config('local_temporary_enrolments_onoff', $i);
 
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $selfenrol = $DB->get_record('enrol', array('enrol' => 'self', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $se = new enrol_self_plugin();
-        $context = \context_course::instance($data['course']->id);
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
 
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
+            $roleassignments = $DB->get_records('role_assignments');
+            $this->assertEquals(1, count($roleassignments));
 
-        $roleassignments = $DB->get_records('role_assignments');
-        $this->assertEquals(1, count($roleassignments));
+            $this->data['se_plugin']->enrol_user($this->data['selfenrol'], $this->data['student']->id, $this->data['studentrole']);
 
-        $se->enrol_user($selfenrol, $data['student']->id, $studentrole->id);
+            $roleassignments = $DB->get_records('role_assignments');
+            $expected = $i == 1 ? 1 : 2;
+            $this->assertEquals($expected, count($roleassignments));
 
-        $roleassignments = $DB->get_records('role_assignments');
-        $this->assertEquals(1, count($roleassignments));
-        $this->assertEquals($studentrole->id , $roleassignments[array_keys($roleassignments)[0]]->roleid);
-    }
-
-    /**
-     * With plugin turned OFF:
-     * Does upgrade() NOT unassign the temporary role?
-     *
-     * @return void
-     */
-    public function test_upgrade_remove_role_off() {
-        $this->resetAfterTest();
-        global $DB, $CFG;
-
-        $data = $this->make();
-
-        set_config('local_temporary_enrolments_onoff', 0);
-
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $selfenrol = $DB->get_record('enrol', array('enrol' => 'self', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $se = new enrol_self_plugin();
-        $context = \context_course::instance($data['course']->id);
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
-
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-
-        $roleassignments = $DB->get_records('role_assignments');
-        $this->assertEquals(1, count($roleassignments));
-
-        $se->enrol_user($selfenrol, $data['student']->id, $studentrole->id);
-
-        $roleassignments = $DB->get_records('role_assignments');
-        $this->assertEquals(2, count($roleassignments));
+            $sink->close();
+            $this->reset();
+        }
     }
 
     /**
      * Does upgrade() correctly send email?
+     * Does it NOT send when the plugin is off?
      *
      * @return void
      */
     public function test_upgrade_email() {
         $this->resetAfterTest();
-        global $DB, $CFG;
+        global $DB;
 
-        $data = $this->make();
+        for ($i = 0; $i <= 1; $i++) {
+            set_config('local_temporary_enrolments_onoff', $i);
 
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
+            $sink = $this->redirectEmails();
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
+            $sink->close();
 
-        $sink = $this->redirectEmails();
+            $event = \core\event\role_assigned::create(array(
+                'context' => $this->data['coursecontext'],
+                'objectid' => $this->data['studentrole'],
+                'relateduserid' => $this->data['student']->id,
+                'other' => array(
+                    'id' => 123,
+                    'component' => 'flatfile',
+                ),
+            ));
 
-        $context = \context_course::instance($data['course']->id);
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
-        $event = \core\event\role_assigned::create(array(
-            'context' => $context,
-            'objectid' => $studentrole->id,
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => 123,
-                'component' => 'flatfile',
-            ),
-        ));
+            $sink = $this->redirectEmails();
+            $event->trigger();
+            $sink->close();
+            $results = $sink->get_messages();
 
-        $event->trigger();
-        $sink->close();
-        $results = $sink->get_messages();
+            $expected = $i == 1 ? 1 : 0;
+            $this->assertEquals($expected, count($results));
+            if ($i == 1) {
+                $body = array('Dear Stu', 'access to ' . $this->data['course']->fullname);
+                $subject = 'Temporary enrolment for ' . $this->data['course']->fullname . ' upgraded!';
+                $this->emailHas($results[0], $body, $subject, 'student@');
+            }
 
-        $this->assertEquals(1, count($results)); // Make sure it sent upgrade email and NOT expire email as well.
+            // Upgrade email off.
+            set_config('local_temporary_enrolments_upgrade_onoff', 0);
+            $sink = $this->redirectEmails();
+            $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
+            $sink->close();
+            $event = \core\event\role_assigned::create(array(
+                'context' => $this->data['coursecontext'],
+                'objectid' => $this->data['studentrole'],
+                'relateduserid' => $this->data['student']->id,
+                'other' => array(
+                    'id' => 124,
+                    'component' => 'flatfile',
+                ),
+            ));
+            $sink = $this->redirectEmails();
+            $event->trigger();
+            $sink->close();
+            $results = $sink->get_messages();
+            $this->assertEquals(0, count($results));
 
-        $body = array('Dear Stu', 'access to '.$data['course']->fullname);
-        $this->email_has($results[0], $body, 'Temporary enrolment for '.$data['course']->fullname.' upgraded!', 'student@');
-
-        // Upgrade email off.
-        set_config('local_temporary_enrolments_upgrade_onoff', 0);
-        $sink = $this->redirectEmails();
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-        $sink->close();
-        $event = \core\event\role_assigned::create(array(
-            'context' => $context,
-            'objectid' => $studentrole->id,
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => 124,
-                'component' => 'flatfile',
-            ),
-        ));
-        $sink = $this->redirectEmails();
-        $event->trigger();
-        $sink->close();
-        $results = $sink->get_messages();
-        $this->assertEquals(0, count($results));
-    }
-
-    /**
-     * With plugin turned OFF:
-     * Does upgrade() NOT send email?
-     *
-     * @return void
-     */
-    public function test_upgrade_email_off() {
-        $this->resetAfterTest();
-        global $DB, $CFG;
-
-        $data = $this->make();
-
-        set_config('local_temporary_enrolments_onoff', 0);
-
-        $enrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $data['course']->id));
-        $e = new enrol_manual_plugin();
-        $e->enrol_user($enrol, $data['student']->id, $data['role']);
-
-        $sink = $this->redirectEmails();
-
-        $context = \context_course::instance($data['course']->id);
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
-        $event = \core\event\role_assigned::create(array(
-            'context' => $context,
-            'objectid' => $studentrole->id,
-            'relateduserid' => $data['student']->id,
-            'other' => array(
-                'id' => 123,
-                'component' => 'flatfile',
-            ),
-        ));
-
-        $event->trigger();
-        $sink->close();
-        $results = $sink->get_messages();
-
-        $this->assertEquals(0, count($results));
+            $this->reset();
+        }
     }
 }
