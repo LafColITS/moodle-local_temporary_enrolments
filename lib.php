@@ -128,19 +128,19 @@ function handle_existing_assignments() {
     $DB->delete_records('local_temporary_enrolments');
     $roleid = get_temp_role()->id;
     // Add existing role assignments.
-    $ss = "s__local_temporary_enrolments_existingassignments"; // Setting name string.
-    $onoff = array_key_exists($ss, $_POST) ? $_POST[$ss] : $CFG->$ss;
+    $ss = "local_temporary_enrolments_existingassignments"; // Setting name string.
+    $onoff = array_key_exists('s__'.$ss, $_POST) ? $_POST['s__'.$ss] : $CFG->$ss;
     if ($onoff) {
         $toadd = $DB->get_records('role_assignments', array('roleid' => $roleid));
         $now = time();
         foreach ($toadd as $assignment) {
-            $start = array_key_exists($ss.'_start', $_POST) ? $_POST[$ss.'_start'] : $CFG->{$s.'_start'};
+            $start = array_key_exists('s__'.$ss.'_start', $_POST) ? $_POST['s__'.$ss.'_start'] : $CFG->{$ss.'_start'};
             $starttime = $assignment->timemodified; // Default.
             if ($start) {
                 $starttime = $now;
             }
             add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
-            $sendemail = array_key_exists($ss.'_email', $_POST) ? $_POST[$ss.'_email'] : $CFG->{$s.'_email'};
+            $sendemail = array_key_exists('s__'.$ss.'_email', $_POST) ? $_POST['s__'.$ss.'_email'] : $CFG->{$ss.'_email'};
             if ($sendemail) {
                 $assignerid = 1;
                 $assigneeid = $assignment->userid;
