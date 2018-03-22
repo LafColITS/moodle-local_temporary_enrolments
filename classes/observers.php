@@ -143,14 +143,12 @@ class observers {
     public static function expire($event) {
         global $DB, $CFG;
 
-        if (!$CFG->local_temporary_enrolments_onoff) {
+        $role = get_temp_role();
+        if ($event->objectid != $role->id) {
             return;
         }
 
-        // Get temporary_enrolment role.
-        $role = get_temp_role();
-
-        if ($event->objectid == $role->id) {
+        if ($CFG->local_temporary_enrolments_onoff) {
             $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $event->other['id']));
             // Check if the enrolment was removed by upgrade().
             if (gettype($expiration) == 'object' && !$expiration->upgraded && $CFG->local_temporary_enrolments_expire_onoff) {
@@ -192,6 +190,5 @@ class observers {
         if ($expiration) {
             $DB->delete_records('local_temporary_enrolments', array('id' => $expiration->id));
         }
-
     }
 }
