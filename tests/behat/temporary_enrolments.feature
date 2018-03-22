@@ -1,11 +1,11 @@
 @local @local_temporary_enrolments
 Feature: Temporary Enrolments
-    In order to test temporary enrolment
-    As an admin
-    I need to make a test course
+  In order to test temporary enrolment
+  As an admin
+  I need to make a test course
 
-    @javascript
-    Scenario: Testing existing role assignment start time: now
+  @javascript
+  Scenario: Testing existing role assignment start time: now
     Given the following "courses" exist:
       | fullname    | shortname   | numsections |
       | Test Course | testcourse  | 44          |
@@ -68,8 +68,8 @@ Feature: Temporary Enrolments
     Then I should not see "Three User" in the "#participantsform" "css_element"
     Then I should not see "Four User" in the "#participantsform" "css_element"
 
-    @javascript
-    Scenario: Testing existing role assignment start time: at creation
+  @javascript
+  Scenario: Testing existing role assignment start time: at creation
     Given the following "courses" exist:
       | fullname    | shortname   | numsections |
       | Test Course | testcourse  | 44          |
@@ -123,21 +123,21 @@ Feature: Temporary Enrolments
     Then I should not see "Three User" in the "#participantsform" "css_element"
     Then I should not see "Four User" in the "#participantsform" "css_element"
 
-    @javascript
-    Scenario: Testing existing role assignment base behavior
+  @javascript
+  Scenario: Testing existing role assignment base behavior
     Given the following "courses" exist:
-        | fullname    | shortname   | numsections |
-        | Test Course | testcourse  | 44          |
+      | fullname    | shortname   | numsections |
+      | Test Course | testcourse  | 44          |
     Given the following "users" exist:
-        | username  | firstname | lastname |
-        | userone   | One       | User     |
-        | usertwo   | Two       | User     |
-        | userthree | Three     | User     |
-        | userfour  | Four      | User     |
+      | username  | firstname | lastname |
+      | userone   | One       | User     |
+      | usertwo   | Two       | User     |
+      | userthree | Three     | User     |
+      | userfour  | Four      | User     |
     Given the following "roles" exist:
-        | name      | shortname |
-        | Role One  | roleone   |
-        | Role Two  | roletwo   |
+      | name      | shortname |
+      | Role One  | roleone   |
+      | Role Two  | roletwo   |
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
@@ -169,17 +169,17 @@ Feature: Temporary Enrolments
     Then I should not see "Three User" in the "#participantsform" "css_element"
     Then I should not see "Four User" in the "#participantsform" "css_element"
 
-    @javascript
-    Scenario: Testing temp enrolment length updating
+  @javascript
+  Scenario: Testing temp enrolment length updating
     Given the following "courses" exist:
-        | fullname    | shortname   | numsections |
-        | Test Course | testcourse  | 44          |
+      | fullname    | shortname   | numsections |
+      | Test Course | testcourse  | 44          |
     Given the following "users" exist:
-        | username  | firstname | lastname |
-        | testuser  | Test      | User     |
+      | username  | firstname | lastname |
+      | testuser  | Test      | User     |
     Given the following "roles" exist:
-        | name      | shortname |
-        | Test Role | test      |
+      | name      | shortname |
+      | Test Role | test      |
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
@@ -207,17 +207,17 @@ Feature: Temporary Enrolments
     When I follow "Participants"
     Then I should not see "Test User" in the "#participantsform" "css_element"
 
-    @javascript
-    Scenario: Testing automatic unenrolment after time
+  @javascript
+  Scenario: Testing automatic unenrolment after time
     Given the following "courses" exist:
-        | fullname    | shortname   | numsections |
-        | Test Course | testcourse  | 44          |
+      | fullname    | shortname   | numsections |
+      | Test Course | testcourse  | 44          |
     Given the following "users" exist:
-        | username  | firstname | lastname |
-        | testuser  | Test      | User     |
+      | username  | firstname | lastname |
+      | testuser  | Test      | User     |
     Given the following "roles" exist:
-        | name      | shortname |
-        | Test Role | test      |
+      | name      | shortname |
+      | Test Role | test      |
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
@@ -239,17 +239,17 @@ Feature: Temporary Enrolments
     And I follow "Participants"
     Then I should not see "Test User" in the "#participantsform" "css_element"
 
-    @javascript
-    Scenario: Testing temporary enrolments plugin upgrade functionality
+  @javascript
+  Scenario: Testing temporary enrolments plugin upgrade functionality
     And the following "courses" exist:
-        | fullname     | shortname   | numsections |
-        | Upgrade Test | upgradetest | 44          |
+      | fullname     | shortname   | numsections |
+      | Upgrade Test | upgradetest | 44          |
     And the following "users" exist:
-        | username    | firstname | lastname |
-        | upgradeuser | Upgrade   | User     |
+      | username    | firstname | lastname |
+      | upgradeuser | Upgrade   | User     |
     And the following "roles" exist:
-        | name      | shortname |
-        | Test Role | test      |
+      | name      | shortname |
+      | Test Role | test      |
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
@@ -270,36 +270,36 @@ Feature: Temporary Enrolments
     And I reload the page
     Then I should not see "Test Role" in the "a[title=\"Upgrade User's role assignments\"]" "css_element"
 
-    @javascript
-    Scenario: Check that default settings are displayed
+  @javascript
+  Scenario: Check that default settings are displayed
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     Then the following fields match these values:
-       | s__local_temporary_enrolments_onoff                      | 0     |
-       | s__local_temporary_enrolments_length[v]                  | 2     |
-       | s__local_temporary_enrolments_length[u]                  | weeks |
+      | s__local_temporary_enrolments_onoff                      | 0     |
+      | s__local_temporary_enrolments_length[v]                  | 2     |
+      | s__local_temporary_enrolments_length[u]                  | weeks |
     And "weeks" "option" should be visible
     Given I click on ".nav-link[href='#local_temporary_enrolments_existingassignments']" "css_element"
     Then the following fields match these values:
-       | s__local_temporary_enrolments_existingassignments        | 1     |
-       | s__local_temporary_enrolments_existingassignments_start  | 1     |
-       | s__local_temporary_enrolments_existingassignments_email  | 1     |
+      | s__local_temporary_enrolments_existingassignments        | 1     |
+      | s__local_temporary_enrolments_existingassignments_start  | 1     |
+      | s__local_temporary_enrolments_existingassignments_email  | 1     |
     Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
-       | s__local_temporary_enrolments_remind_freq                | 2     |
-       | s__local_temporary_enrolments_studentinit_onoff          | 1     |
-       | s__local_temporary_enrolments_teacherinit_onoff          | 1     |
-       | s__local_temporary_enrolments_remind_onoff               | 1     |
-       | s__local_temporary_enrolments_expire_onoff               | 1     |
-       | s__local_temporary_enrolments_upgrade_onoff              | 1     |
+      | s__local_temporary_enrolments_remind_freq                | 2     |
+      | s__local_temporary_enrolments_studentinit_onoff          | 1     |
+      | s__local_temporary_enrolments_teacherinit_onoff          | 1     |
+      | s__local_temporary_enrolments_remind_onoff               | 1     |
+      | s__local_temporary_enrolments_expire_onoff               | 1     |
+      | s__local_temporary_enrolments_upgrade_onoff              | 1     |
     And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_studentinit_content" "css_element"
     And I should see "Dear {TEACHER}" in the "#id_s__local_temporary_enrolments_teacherinit_content" "css_element"
     And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_remind_content" "css_element"
     And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_expire_content" "css_element"
     And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_upgrade_content" "css_element"
 
-    @javascript
-    Scenario: Testing config validation
+  @javascript
+  Scenario: Testing config validation
     And I log in as "admin"
     When I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
@@ -330,17 +330,17 @@ Feature: Temporary Enrolments
     Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
     Then the field "s__local_temporary_enrolments_remind_freq" matches value "3"
 
-    @javascript
-    Scenario: Testing automatic removal of temporary enrolment if there is already a role
+  @javascript
+  Scenario: Testing automatic removal of temporary enrolment if there is already a role
     And the following "courses" exist:
-        | fullname    | shortname  | numsections |
-        | Auto Test   | autotest   | 15          |
+    | fullname    | shortname  | numsections |
+    | Auto Test   | autotest   | 15          |
     And the following "users" exist:
-        | username   | firstname | lastname |
-        | autouser   | Otto      | User     |
+    | username   | firstname | lastname |
+    | autouser   | Otto      | User     |
     And the following "roles" exist:
-        | name      | shortname |
-        | Test Role | test      |
+    | name      | shortname |
+    | Test Role | test      |
     And I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"

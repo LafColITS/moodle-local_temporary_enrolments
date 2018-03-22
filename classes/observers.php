@@ -44,42 +44,43 @@ class observers {
     public static function initialize($event) {
         global $DB, $CFG;
 
-        if ($CFG->local_temporary_enrolments_onoff) {
+        if (!$CFG->local_temporary_enrolments_onoff) {
+            return;
+        }
 
-            // Get temporary_enrolment role.
-            $role = get_temp_role();
+        // Get temporary_enrolment role.
+        $role = get_temp_role();
 
-            if ($event->objectid == $role->id) {
+        if ($event->objectid == $role->id) {
 
-                $allroles = $DB->get_records('role_assignments', array('userid' => $event->relateduserid, 'contextid' => $event->contextid));
+            $allroles = $DB->get_records('role_assignments', array('userid' => $event->relateduserid, 'contextid' => $event->contextid));
 
-                if (count($allroles) > 1) {
-                    role_unassign($role->id, $event->relateduserid, $event->contextid);
-                } else {
+            if (count($allroles) > 1) {
+                role_unassign($role->id, $event->relateduserid, $event->contextid);
+            } else {
 
-                    // Send STUDENT initial email.
-                    if ($CFG->local_temporary_enrolments_studentinit_onoff) {
-                        $assignerid = $event->userid;
-                        $assigneeid = $event->relateduserid;
-                        $courseid = $event->courseid;
-                        $raid = $event->other['id'];
-                        $which = 'studentinit';
-                        send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
-                    }
-
-                    // Send TEACHER initial email.
-                    if ($CFG->local_temporary_enrolments_teacherinit_onoff) {
-                        $assignerid = $event->userid;
-                        $assigneeid = $event->relateduserid;
-                        $courseid = $event->courseid;
-                        $raid = $event->other['id'];
-                        $which = 'teacherinit';
-                        send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which, 'assignerid');
-                    }
-
-                    // Set expiration time.
-                    add_to_custom_table($event->other['id'], $event->objectid, $event->timecreated);
+                // Send STUDENT initial email.
+                if ($CFG->local_temporary_enrolments_studentinit_onoff) {
+                    $assignerid = $event->userid;
+                    $assigneeid = $event->relateduserid;
+                    $courseid = $event->courseid;
+                    $raid = $event->other['id'];
+                    $which = 'studentinit';
+                    send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
                 }
+
+                // Send TEACHER initial email.
+                if ($CFG->local_temporary_enrolments_teacherinit_onoff) {
+                    $assignerid = $event->userid;
+                    $assigneeid = $event->relateduserid;
+                    $courseid = $event->courseid;
+                    $raid = $event->other['id'];
+                    $which = 'teacherinit';
+                    send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which, 'assignerid');
+                }
+
+                // Set expiration time.
+                add_to_custom_table($event->other['id'], $event->objectid, $event->timecreated);
             }
         }
     }

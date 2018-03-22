@@ -106,7 +106,7 @@ function add_to_custom_table($raid, $raroleid, $timecreated) {
 
     $insert = new stdClass();
     $insert->roleassignid = $raid;
-    $insert->roleid = $raroleid; // This is stored so we can easily check that the table is up to date if the role settings are changed.
+    $insert->roleid = $raroleid; // Stored so we can easily check that table is up to date if role settings are changed.
     $length = $CFG->local_temporary_enrolments_length;
     $insert->timeend = $timecreated + $length;
     $insert->timestart = $timecreated;
@@ -129,18 +129,18 @@ function handle_existing_assignments() {
     $roleid = get_temp_role()->id;
     // Add existing role assignments.
     $ss = "s__local_temporary_enrolments_existingassignments"; // Setting name string.
-    $onoff = array_key_exists($ss, $_POST) ? $_POST[$ss] : $CFG->local_temporary_enrolments_existingassignments;
+    $onoff = array_key_exists($ss, $_POST) ? $_POST[$ss] : $CFG->$ss;
     if ($onoff) {
         $toadd = $DB->get_records('role_assignments', array('roleid' => $roleid));
         $now = time();
         foreach ($toadd as $assignment) {
-            $start = array_key_exists($ss.'_start', $_POST) ? $_POST[$ss.'_start'] : $CFG->local_temporary_enrolments_existingassignments_start;
+            $start = array_key_exists($ss.'_start', $_POST) ? $_POST[$ss.'_start'] : $CFG->{$s.'_start'};
             $starttime = $assignment->timemodified; // Default.
             if ($start) {
                 $starttime = $now;
             }
             add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
-            $sendemail = array_key_exists($ss.'_email', $_POST) ? $_POST[$ss.'_email'] : $CFG->local_temporary_enrolments_existingassignments_email;
+            $sendemail = array_key_exists($ss.'_email', $_POST) ? $_POST[$ss.'_email'] : $CFG->{$s.'_email'};
             if ($sendemail) {
                 $assignerid = 1;
                 $assigneeid = $assignment->userid;

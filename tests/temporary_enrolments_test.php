@@ -157,7 +157,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         // Get whichever email was for Harry so we know what to check for.
         $check = array_filter($results, function($email) {
-          return strpos($email->body, 'Harry') !== false;
+            return strpos($email->body, 'Harry') !== false;
         });
 
         $body = array('Dear Harry', 'temporary access to the Moodle site for '.$data['course']->fullname);
