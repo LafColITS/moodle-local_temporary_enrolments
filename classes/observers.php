@@ -53,7 +53,9 @@ class observers {
 
         if ($event->objectid == $role->id) {
 
-            $allroles = $DB->get_records('role_assignments', array('userid' => $event->relateduserid, 'contextid' => $event->contextid));
+            $ruid = $event->relateduserid;
+            $cid = $event->contextid;
+            $allroles = $DB->get_records('role_assignments', array('userid' => $ruid, 'contextid' => $cid));
 
             if (count($allroles) > 1) {
                 role_unassign($role->id, $event->relateduserid, $event->contextid);
@@ -100,7 +102,9 @@ class observers {
             $role = get_temp_role();
 
             // Does student have temporary role?
-            $hasrole = $DB->record_exists('role_assignments', array('contextid' => $event->contextid, 'roleid' => $role->id, 'userid' => $event->relateduserid));
+            $ruid = $event->relateduserid;
+            $cid = $event->contextid;
+            $hasrole = $DB->record_exists('role_assignments', array('userid' => $ruid, 'contextid' => $cid, 'roleid' => $role->id));
 
             // If student has temp role AND the flatfile enrolment was of a different role.
             if ($event->objectid != $role->id && $hasrole) {
@@ -115,8 +119,11 @@ class observers {
                 }
 
                 // Remove temp role and update the entry in our custom table.
-                $roleassignment = $DB->get_record('role_assignments', array('contextid' => $event->contextid, 'roleid' => $role->id, 'userid' => $event->relateduserid));
-                $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $roleassignment->id));
+                $ruid = $event->relateduserid;
+                $cid = $event->contextid;
+                $rid = $role->id;
+                $rassignment = $DB->get_record('role_assignments', array('userid' => $ruid, 'contextid' => $cid, 'roleid' => $rid));
+                $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $rassignment->id));
                 $update = new stdClass();
                 $update->id = $expiration->id;
                 $update->upgraded = 1;
@@ -142,7 +149,8 @@ class observers {
 
             if ($event->objectid == $role->id) {
                 $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $event->other['id']));
-                if (gettype($expiration) == 'object' && !$expiration->upgraded && $CFG->local_temporary_enrolments_expire_onoff) { // Check if the enrolment was removed by upgrade().
+                // Check if the enrolment was removed by upgrade().
+                if (gettype($expiration) == 'object' && !$expiration->upgraded && $CFG->local_temporary_enrolments_expire_onoff) {
                     $assignerid = $event->userid;
                     $assigneeid = $event->relateduserid;
                     $courseid = $event->courseid;
@@ -154,7 +162,9 @@ class observers {
                 // Remove manual enrolment if there are no roles...
                 $plugin = new \enrol_manual_plugin();
                 $manualenrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $event->courseid));
-                if (!$DB->record_exists('role_assignments', array('contextid' => $event->contextid, 'userid' => $event->relateduserid))) {
+                $ruid = $event->relateduserid;
+                $cid = $event->contextid;
+                if (!$DB->record_exists('role_assignments',  array('userid' => $ruid, 'contextid' => $cid))) {
                     $plugin->unenrol_user($manualenrol, $event->relateduserid);
                 } else {
                     // ...or else if there are other enrolments.
