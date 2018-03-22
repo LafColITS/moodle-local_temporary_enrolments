@@ -144,45 +144,48 @@ class observers {
         global $DB, $CFG;
 
         $role = get_temp_role();
-        if ($event->objectid != $role->id) {
+        // Is this an event involving the temporary role?
+        if ($event->objectid == $role->id) {
+            // Remove entry from our custom table (but save it for later in this function).
+            $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $event->other['id']));
+            if ($expiration) {
+                $DB->delete_records('local_temporary_enrolments', array('id' => $expiration->id));
+            }
+        } else {
             return;
         }
 
-        if ($CFG->local_temporary_enrolments_onoff) {
-            $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $event->other['id']));
-            // Check if the enrolment was removed by upgrade().
-            if (gettype($expiration) == 'object' && !$expiration->upgraded && $CFG->local_temporary_enrolments_expire_onoff) {
-                $assignerid = $event->userid;
-                $assigneeid = $event->relateduserid;
-                $courseid = $event->courseid;
-                $raid = $event->other['id'];
-                $which = 'expire';
-                send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
-            }
-
-            // Remove manual enrolment if there are no roles...
-            $plugin = new \enrol_manual_plugin();
-            $manualenrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $event->courseid));
-            $ruid = $event->relateduserid;
-            $cid = $event->contextid;
-            if (!$DB->record_exists('role_assignments',  array('userid' => $ruid, 'contextid' => $cid))) {
-                $plugin->unenrol_user($manualenrol, $event->relateduserid);
-            } else {
-                // ...or else if there are other enrolments.
-                $sql = "SELECT * FROM {user_enrolments} ";
-                $sql .= "INNER JOIN {enrol} ON {user_enrolments}.enrolid={enrol}.id ";
-                $sql .= "WHERE {user_enrolments}.userid=$event->relateduserid AND {enrol}.courseid=$event->courseid";
-                $userenrols = $DB->get_records_sql($sql);
-                if (count($userenrols) > 1) {
-                    $plugin->unenrol_user($manualenrol, $event->relateduserid);
-                }
-            }
+        // Is the plugin turned on?
+        if (!$CFG->local_temporary_enrolments_onoff) {
+            return;
         }
 
-        // Remove entry from our custom table.
-        $expiration = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $event->other['id']));
-        if ($expiration) {
-            $DB->delete_records('local_temporary_enrolments', array('id' => $expiration->id));
+        // Check if the enrolment was removed by upgrade(), and if not, send expiration email.
+        if (gettype($expiration) == 'object' && !$expiration->upgraded && $CFG->local_temporary_enrolments_expire_onoff) {
+            $assignerid = $event->userid;
+            $assigneeid = $event->relateduserid;
+            $courseid = $event->courseid;
+            $raid = $event->other['id'];
+            $which = 'expire';
+            send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
+        }
+
+        // Remove manual enrolment if there are no roles...
+        $plugin = new \enrol_manual_plugin();
+        $manualenrol = $DB->get_record('enrol', array('enrol' => 'manual', 'courseid' => $event->courseid));
+        $ruid = $event->relateduserid;
+        $cid = $event->contextid;
+        if (!$DB->record_exists('role_assignments',  array('userid' => $ruid, 'contextid' => $cid))) {
+            $plugin->unenrol_user($manualenrol, $event->relateduserid);
+        } else {
+            // ...or else if there are other enrolments.
+            $sql = "SELECT * FROM {user_enrolments} ";
+            $sql .= "INNER JOIN {enrol} ON {user_enrolments}.enrolid={enrol}.id ";
+            $sql .= "WHERE {user_enrolments}.userid=$event->relateduserid AND {enrol}.courseid=$event->courseid";
+            $userenrols = $DB->get_records_sql($sql);
+            if (count($userenrols) > 1) {
+                $plugin->unenrol_user($manualenrol, $event->relateduserid);
+            }
         }
     }
 }
