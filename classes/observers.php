@@ -97,7 +97,6 @@ class observers {
         // Break out event data into semantic/shorter variables.
         $assigner = $event->userid;
         $assignee = $event->relateduserid;
-        $assignedrole = $event->objectid;
         $context = $event->contextid;
         $course = $event->courseid;
         $roleassignment = $event->other['id'];
@@ -141,7 +140,6 @@ class observers {
             // Break out event data into semantic/shorter variables.
             $assigner = $event->userid;
             $assignee = $event->relateduserid;
-            $assignedrole = $event->objectid;
             $context = $event->contextid;
             $course = $event->courseid;
             $roleassignment = $event->other['id'];

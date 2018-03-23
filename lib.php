@@ -122,7 +122,7 @@ function get_temp_role() {
     }
 }
 
-function handle_update_length(){
+function handle_update_length() {
     global $DB;
     update_length($DB->get_record('config', array('name' => 'local_temporary_enrolments_length'))->value);
 }
