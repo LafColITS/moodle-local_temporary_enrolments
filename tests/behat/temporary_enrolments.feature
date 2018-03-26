@@ -265,6 +265,7 @@ Feature: Temporary Enrolments
     And I wait until the page is ready
     And I click on "a[title=\"Upgrade User's role assignments\"]" "css_element"
     And I set the field with xpath "//form[@id='participantsform']//input[starts-with(@id, 'form_autocomplete_')]" to "Student"
+    And I click on ".form-autocomplete-downarrow" "css_element"
     And I click on "//ul[@class='form-autocomplete-suggestions']//li[contains(., 'Student')]" "xpath_element"
     And I click on "//span[@data-editlabel=\"Upgrade User's role assignments\"]//a[contains(., i[title='Save changes'])]" "xpath_element"
     And I reload the page
@@ -355,6 +356,7 @@ Feature: Temporary Enrolments
     And I reload the page
     And I click on "a[title=\"Otto User's role assignments\"]" "css_element"
     And I set the field with xpath "//form[@id='participantsform']//input[starts-with(@id, 'form_autocomplete_')]" to "Test Role"
+    And I click on ".form-autocomplete-downarrow" "css_element"
     And I click on "//ul[@class='form-autocomplete-suggestions']//li[contains(., 'Test Role')]" "xpath_element"
     And I click on "//span[@data-editlabel=\"Otto User's role assignments\"]//a[contains(., i[title='Save changes'])]" "xpath_element"
     And I reload the page
