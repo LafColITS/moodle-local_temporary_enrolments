@@ -191,8 +191,9 @@ Feature: Temporary Enrolments
     And I wait until the page is ready
     And I follow "Participants"
     And I enrol "testuser" user as "Test Role"
-    And I reload the page
-    And I wait until the page is ready
+    And I am on site homepage
+    And I follow "Test Course"
+    And I follow "Participants"
     Then I should see "Test User" in the "#participantsform" "css_element"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
@@ -262,13 +263,10 @@ Feature: Temporary Enrolments
     And I follow "Participants"
     And I enrol "upgradeuser" user as "Test Role"
     And I reload the page
-    And I wait until the page is ready
-    And I click on "a[title=\"Upgrade User's role assignments\"]" "css_element"
-    And I click on "#participantsform .form-autocomplete-downarrow" "css_element"
-    And I click on "//form[@id='participantsform']//ul[@class='form-autocomplete-suggestions']//li[contains(., 'Student')]" "xpath_element"
-    And I click on "//form[@id='participantsform']//span[@data-editlabel=\"Upgrade User's role assignments\"]//a[contains(., i[title='Save changes'])]" "xpath_element"
+    And I click on "a.assignrolelink" "css_element"
+    And I click on "input[type=button][value='Student']" "css_element"
     And I reload the page
-    Then I should not see "Test Role" in the "a[title=\"Upgrade User's role assignments\"]" "css_element"
+    Then I should not see "Test Role" in the "div.roles" "css_element"
 
   @javascript
   Scenario: Check that default settings are displayed
@@ -353,9 +351,7 @@ Feature: Temporary Enrolments
     And I follow "Participants"
     And I enrol "autouser" user as "Student"
     And I reload the page
-    And I click on "a[title=\"Otto User's role assignments\"]" "css_element"
-    And I click on "#participantsform .form-autocomplete-downarrow" "css_element"
-    And I click on "//form[@id='participantsform']//ul[@class='form-autocomplete-suggestions']//li[contains(., 'Test Role')]" "xpath_element"
-    And I click on "//form[@id='participantsform']//span[@data-editlabel=\"Otto User's role assignments\"]//a[contains(., i[title='Save changes'])]" "xpath_element"
+    And I click on "a.assignrolelink" "css_element"
+    And I click on "input[type=button][value='Test Role']" "css_element"
     And I reload the page
-    Then I should not see "Test Role" in the "a[title=\"Otto User's role assignments\"]" "css_element"
+    Then I should not see "Test Role" in the "div.roles" "css_element"
