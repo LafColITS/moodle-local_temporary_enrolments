@@ -264,10 +264,9 @@ Feature: Temporary Enrolments
     And I reload the page
     And I wait until the page is ready
     And I click on "a[title=\"Upgrade User's role assignments\"]" "css_element"
-    And I set the field with xpath "//form[@id='participantsform']//input[starts-with(@id, 'form_autocomplete_')]" to "Student"
-    And I click on ".form-autocomplete-downarrow" "css_element"
-    And I click on "//ul[@class='form-autocomplete-suggestions']//li[contains(., 'Student')]" "xpath_element"
-    And I click on "//span[@data-editlabel=\"Upgrade User's role assignments\"]//a[contains(., i[title='Save changes'])]" "xpath_element"
+    And I click on "#participantsform .form-autocomplete-downarrow" "css_element"
+    And I click on "//form[@id='participantsform']//ul[@class='form-autocomplete-suggestions']//li[contains(., 'Student')]" "xpath_element"
+    And I click on "//form[@id='participantsform']//span[@data-editlabel=\"Upgrade User's role assignments\"]//a[contains(., i[title='Save changes'])]" "xpath_element"
     And I reload the page
     Then I should not see "Test Role" in the "a[title=\"Upgrade User's role assignments\"]" "css_element"
 
@@ -355,9 +354,8 @@ Feature: Temporary Enrolments
     And I enrol "autouser" user as "Student"
     And I reload the page
     And I click on "a[title=\"Otto User's role assignments\"]" "css_element"
-    And I set the field with xpath "//form[@id='participantsform']//input[starts-with(@id, 'form_autocomplete_')]" to "Test Role"
-    And I click on ".form-autocomplete-downarrow" "css_element"
-    And I click on "//ul[@class='form-autocomplete-suggestions']//li[contains(., 'Test Role')]" "xpath_element"
-    And I click on "//span[@data-editlabel=\"Otto User's role assignments\"]//a[contains(., i[title='Save changes'])]" "xpath_element"
+    And I click on "#participantsform .form-autocomplete-downarrow" "css_element"
+    And I click on "//form[@id='participantsform']//ul[@class='form-autocomplete-suggestions']//li[contains(., 'Test Role')]" "xpath_element"
+    And I click on "//form[@id='participantsform']//span[@data-editlabel=\"Otto User's role assignments\"]//a[contains(., i[title='Save changes'])]" "xpath_element"
     And I reload the page
     Then I should not see "Test Role" in the "a[title=\"Otto User's role assignments\"]" "css_element"
