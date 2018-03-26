@@ -284,7 +284,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         $body = array('Dear Harry', 'temporary access to the Moodle site for '.$this->data['course']->fullname);
         $subject = 'Temporary enrolment granted for '.$this->data['course']->fullname;
-        $this->emailHas($check[0], $body, $subject, 'hpindahouse@hogwarts.owl');
+        $this->emailHas(reset($check), $body, $subject, 'hpindahouse@hogwarts.owl');
 
         // And if the email option is turned off?
         set_config('local_temporary_enrolments_existingassignments_email', 0);
