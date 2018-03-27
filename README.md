@@ -1,4 +1,5 @@
 # Temporary Enrolments
+[![Build Status](https://travis-ci.org/LafColITS/moodle-local_temporary_enrolments.svg?branch=master)](https://travis-ci.org/LafColITS/moodle-local_temporary_enrolments)
 
 ## Introduction
 
