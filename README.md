@@ -51,7 +51,7 @@ If you already have a role that marks wait-listed, unregistered, or other studen
 
 ## Versions
 
-So far four versions of the plugin have been released -- `3.2`, `3.3`, `3.4`, and `master`. These versions correspond to the Moodle version which they support. Currently the plugin code itself works on any of those Moodle versions, regardless of plugin version; however, the automated tests will fail if you use the incorrect plugin version. This plugin has not been tested and is not supported below Moodle `3.2`.
+This version of the plugin is for Moodle 3.4. It may work with other versions of Moodle, but the automatic tests are likely to fail.
 
 ## Acknowledgements
 
