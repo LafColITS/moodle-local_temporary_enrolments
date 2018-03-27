@@ -42,6 +42,10 @@ If you already have a role that marks wait-listed, unregistered, or other studen
     3. Do you want the duration of the temporary enrolments for existing role assignments to start from the time that those pre-existing role assignments were created, or to start from now?
 3. Press `Save changes`.
 
+## Versions
+
+So far four versions of the plugin have been released -- `3.2`, `3.3`, `3.4`, and `master`. These versions correspond to the Moodle version which they support. Currently the plugin code itself works on any of those Moodle versions, regardless of plugin version; however, the automated tests will fail if you use the incorrect plugin version. This plugin has not been tested and is not supported below Moodle `3.2`.
+
 ## Directory Overview
 
 ### /
