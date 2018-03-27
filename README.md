@@ -3,11 +3,17 @@
 
 ## Introduction
 
-A Moodle plugin to manage temporary/provisional course site access for wait-listed or unregistered students.
+**A Moodle plugin to manage temporary/provisional course site access for wait-listed or unregistered students.**
+
+Often a student or other user needs to be given access to a course site -- in order to read the syllabus, complete homework, etc. -- but is not officially enrolled in the course (i.e., through the registrar.) They may be waitlisted, not have turned in their registration form, or be waiting for their registration to process. A potential and easy solution is to allow teachers/professors to enrol users in their Moodle courses. When a student requires access but has not been granted it through the usual process, due to not being registered, they can ask the teacher and the teacher can give them access to the course website by enrolling them in Moodle.
+
+However, this is not the ideal solution. It is inelegant in that it draws no separation in the Moodle context between a registered course member and someone who is merely being granted course website access. The connection between Moodle 'enrolment' and actual, registrar-verified course enrolment becomes tenuous and messy. Even more importantly, this confusion can spread to the site user experience. Students may mistakenly believe that they are offically enrolled in a course because they have Moodle access, when in fact their enrolment has not been processed by the registrar. This can lead to serious problems if the student does not officially register by the add/drop deadline.
+
+This plugin is intended as a solution to the above problem. It provides a way for teachers to enrol students on an enforced temporary basis; i.e., the enrolment is automatically terminated after a period of time. While Moodle's built-in manual enrolment method *does* provide the ability to limit the length of those manual enrolments, it does *not* provide a way to make that length different per user -- meaning that *all* manual enrolments would become temporary, which is not the desired behavior. Rather than creating another enrolment method, this plugin utilizes a more lightweight solution -- it provides all of its functionality by keying off of a specific role. For more information on the functionality of the plugin, read on.
 
 ### Enrolments marked as temporary:
 - automatically expire after 2 weeks (configurable)
-- are auto-removed upon permanent enrolment
+- are auto-removed upon permanent enrolment (when a non-temporary role is added to the user)
 
 ### The following emails are sent by the plugin (configurable):
 - explanatory email to both teacher and student on enrolment
