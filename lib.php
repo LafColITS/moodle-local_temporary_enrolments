@@ -62,7 +62,7 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
         '/\{STUDENTLAST\}/' => $student->lastname,
         '/\{STUDENTFULL\}/' => fullname($student),
         '/\{COURSE\}/' => $course->fullname,
-        '/\{TIMELEFT\}/' => round(($expiration->timeend - time()) / 86400)
+        '/\{TIMELEFT\}/' => round(($expiration->timeend - time()) / 86400),
         '/\{SUBJECT: (.*)\}\s+/' => '',
     );
 
