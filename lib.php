@@ -36,7 +36,7 @@ require_once($CFG->dirroot. '/lib/moodlelib.php');
  * @return void
  */
 function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which, $sendto='assigneeid') {
-    global $DB, $CFG;
+    global $DB;
 
     // Build 'from' object.
     $noreplyuser = \core_user::get_noreply_user();
@@ -67,7 +67,7 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
     );
 
     // Get raw email content.
-    $message = $CFG->{'local_temporary_enrolments_'.$which.'_content'};
+    $message = get_config('local_temporary_enrolments', $which . '_content');
 
      // Subject.
     $subject = array();
@@ -92,12 +92,12 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
  * @return void
  */
 function add_to_custom_table($raid, $raroleid, $timecreated) {
-    global $DB, $CFG;
+    global $DB;
 
     $insert = new stdClass();
     $insert->roleassignid = $raid;
     $insert->roleid = $raroleid; // Stored so we can easily check that table is up to date if role settings are changed.
-    $length = $CFG->local_temporary_enrolments_length;
+    $length = get_config('local_temporary_enrolments', 'length');
     $insert->timeend = $timecreated + $length;
     $insert->timestart = $timecreated;
     $DB->insert_record('local_temporary_enrolments', $insert);
@@ -106,43 +106,43 @@ function add_to_custom_table($raid, $raroleid, $timecreated) {
 function get_temp_role() {
     global $DB;
 
-    $id = $DB->get_record('config', array('name' => 'local_temporary_enrolments_roleid'));
-    if (gettype($id) == 'object') {
-        return $DB->get_record('role', array('id' => $id->value));
+    if ($id = get_config('local_temporary_enrolments', 'roleid')) {
+        return $DB->get_record('role', array('id' => $id));
     }
 }
 
 function handle_update_length() {
     global $DB;
-    update_length($DB->get_record('config', array('name' => 'local_temporary_enrolments_length'))->value);
+    $length = get_config('local_temporary_enrolments', 'length');
+    update_length($length);
 }
 
 function handle_update_reminder_freq() {
     global $DB;
-    $remindfreq = $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq'));
+    $remindfreq = get_config('local_temporary_enrolments', 'remind_freq');
     $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
     update_remind_freq($task, $remindfreq);
 }
 
 function handle_existing_assignments() {
-    global $DB, $CFG;
+    global $DB;
     // Wipe any outdated entries in the custom table.
     $DB->delete_records('local_temporary_enrolments');
     $roleid = get_temp_role()->id;
     // Add existing role assignments.
     $ss = "local_temporary_enrolments_existingassignments"; // Setting name string.
-    $onoff = array_key_exists('s__'.$ss, $_POST) ? $_POST['s__'.$ss] : $CFG->$ss;
+    $onoff = array_key_exists('s_'.$ss, $_POST) ? $_POST['s_'.$ss] : get_config('local_temporary_enrolments', 'existingassignments');
     if ($onoff) {
         $toadd = $DB->get_records('role_assignments', array('roleid' => $roleid));
         $now = time();
         foreach ($toadd as $assignment) {
-            $start = array_key_exists('s__'.$ss.'_start', $_POST) ? $_POST['s__'.$ss.'_start'] : $CFG->{$ss.'_start'};
+            $start = array_key_exists('s_'.$ss.'_start', $_POST) ? $_POST['s_'.$ss.'_start'] : get_config('local_temporary_enrolments', 'existingassignments_start');
             $starttime = $assignment->timemodified; // Default.
             if ($start) {
                 $starttime = $now;
             }
             add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
-            $sendemail = array_key_exists('s__'.$ss.'_email', $_POST) ? $_POST['s__'.$ss.'_email'] : $CFG->{$ss.'_email'};
+            $sendemail = array_key_exists('s_'.$ss.'_email', $_POST) ? $_POST['s_'.$ss.'_email'] : get_config('local_temporary_enrolments', 'existingassignments_email');
             if ($sendemail) {
                 $assignerid = 1;
                 $assigneeid = $assignment->userid;
@@ -160,7 +160,7 @@ function handle_existing_assignments() {
  * Update the frequency of reminder emails in the database (based on config)
  *
  * @param object $task Should be a the remind_task entry from task_scheduled table
- * @param object $newfreq Should be the config entry for remind frequency
+ * @param object $newfreq Should be the config value for remind frequency
  *
  * @return void
  */
@@ -168,7 +168,7 @@ function update_remind_freq($task, $newfreq) {
     global $DB;
     $update = new stdClass();
     $update->id = $task->id;
-    $update->day = '*/'.$newfreq->value;
+    $update->day = '*/'.$newfreq;
     $DB->update_record('task_scheduled', $update);
 }
 

@@ -40,9 +40,9 @@ class expire_task extends \core\task\scheduled_task {
     }
 
     public function execute() {
-        global $DB, $CFG;
+        global $DB;
 
-        if ($CFG->local_temporary_enrolments_onoff) {
+        if (get_config('local_temporary_enrolments', 'onoff')) {
 
             // Get temporary_enrolment role.
             $role = get_temp_role();

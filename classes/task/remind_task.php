@@ -38,9 +38,9 @@ class remind_task extends \core\task\scheduled_task {
     }
 
     public function execute() {
-        global $DB, $CFG;
+        global $DB;
 
-        if ($CFG->local_temporary_enrolments_onoff) {
+        if (get_config('local_temporary_enrolments', 'onoff')) {
 
             // Get temporary_enrolment role id.
             $role = get_temp_role();
@@ -50,7 +50,7 @@ class remind_task extends \core\task\scheduled_task {
             foreach ($roleassignments as $roleassignment) {
                 // Send reminder email.
                 $managedbyplugin = $DB->count_records('local_temporary_enrolments', array('roleassignid' => $roleassignment->id));
-                if ($CFG->local_temporary_enrolments_remind_onoff && $managedbyplugin > 0) {
+                if (get_config('local_temporary_enrolments', 'remind_onoff') && $managedbyplugin > 0) {
                     $student = $DB->get_record('user', array('id' => $roleassignment->userid));
                     $context = $DB->get_record('context', array('id' => $roleassignment->contextid));
                     $course = $DB->get_record('course', array('id' => $context->instanceid));

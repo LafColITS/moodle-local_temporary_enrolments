@@ -22,10 +22,10 @@ Feature: Temporary Enrolments
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
-    And I click on "s__local_temporary_enrolments_onoff" "checkbox"
-    And I select "roleone" from the "s__local_temporary_enrolments_roleid" singleselect
-    And I set the field "s__local_temporary_enrolments_length[v]" to "10"
-    And I select "seconds" from the "s__local_temporary_enrolments_length[u]" singleselect
+    And I click on "s_local_temporary_enrolments_onoff" "checkbox"
+    And I select "roleone" from the "s_local_temporary_enrolments_roleid" singleselect
+    And I set the field "s_local_temporary_enrolments_length[v]" to "10"
+    And I select "seconds" from the "s_local_temporary_enrolments_length[u]" singleselect
     And I press "Save changes"
     And I am on site homepage
     And I follow "Test Course"
@@ -47,9 +47,9 @@ Feature: Temporary Enrolments
     Then I should see "Three User" in the "#participantsform" "css_element"
     Then I should see "Four User" in the "#participantsform" "css_element"
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
-    And I select "roletwo" from the "s__local_temporary_enrolments_roleid" singleselect
+    And I select "roletwo" from the "s_local_temporary_enrolments_roleid" singleselect
     And I click on "a.nav-link[href='#local_temporary_enrolments_existingassignments']" "css_element"
-    And I select "From right now" from the "s__local_temporary_enrolments_existingassignments_start" singleselect
+    And I select "From right now" from the "s_local_temporary_enrolments_existingassignments_start" singleselect
     And I press "Save changes"
     And I trigger cron
     And I wait "60" seconds
@@ -86,10 +86,10 @@ Feature: Temporary Enrolments
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
-    And I click on "s__local_temporary_enrolments_onoff" "checkbox"
-    And I select "roleone" from the "s__local_temporary_enrolments_roleid" singleselect
-    And I set the field "s__local_temporary_enrolments_length[v]" to "10"
-    And I select "seconds" from the "s__local_temporary_enrolments_length[u]" singleselect
+    And I click on "s_local_temporary_enrolments_onoff" "checkbox"
+    And I select "roleone" from the "s_local_temporary_enrolments_roleid" singleselect
+    And I set the field "s_local_temporary_enrolments_length[v]" to "10"
+    And I select "seconds" from the "s_local_temporary_enrolments_length[u]" singleselect
     And I press "Save changes"
     And I am on site homepage
     And I follow "Test Course"
@@ -110,9 +110,9 @@ Feature: Temporary Enrolments
     Then I should see "Three User" in the "#participantsform" "css_element"
     Then I should see "Four User" in the "#participantsform" "css_element"
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
-    And I select "roletwo" from the "s__local_temporary_enrolments_roleid" singleselect
+    And I select "roletwo" from the "s_local_temporary_enrolments_roleid" singleselect
     And I click on "a.nav-link[href='#local_temporary_enrolments_existingassignments']" "css_element"
-    And I select "From assignment start time" from the "s__local_temporary_enrolments_existingassignments_start" singleselect
+    And I select "From assignment start time" from the "s_local_temporary_enrolments_existingassignments_start" singleselect
     And I press "Save changes"
     And I wait "60" seconds
     And I trigger cron
@@ -141,8 +141,8 @@ Feature: Temporary Enrolments
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
-    And I click on "s__local_temporary_enrolments_onoff" "checkbox"
-    And I select "roleone" from the "s__local_temporary_enrolments_roleid" singleselect
+    And I click on "s_local_temporary_enrolments_onoff" "checkbox"
+    And I select "roleone" from the "s_local_temporary_enrolments_roleid" singleselect
     And I press "Save changes"
     And I am on site homepage
     And I follow "Test Course"
@@ -154,9 +154,9 @@ Feature: Temporary Enrolments
     And I enrol "userfour" user as "Role Two"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
-    And I select "roletwo" from the "s__local_temporary_enrolments_roleid" singleselect
-    And I set the field "s__local_temporary_enrolments_length[v]" to "10"
-    And I select "seconds" from the "s__local_temporary_enrolments_length[u]" singleselect
+    And I select "roletwo" from the "s_local_temporary_enrolments_roleid" singleselect
+    And I set the field "s_local_temporary_enrolments_length[v]" to "10"
+    And I select "seconds" from the "s_local_temporary_enrolments_length[u]" singleselect
     And I press "Save changes"
     And I wait "10" seconds
     And I trigger cron
@@ -183,8 +183,8 @@ Feature: Temporary Enrolments
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
-    And I click on "s__local_temporary_enrolments_onoff" "checkbox"
-    And I select "test" from the "s__local_temporary_enrolments_roleid" singleselect
+    And I click on "s_local_temporary_enrolments_onoff" "checkbox"
+    And I select "test" from the "s_local_temporary_enrolments_roleid" singleselect
     And I press "Save changes"
     And I am on site homepage
     And I follow "Test Course"
@@ -196,8 +196,8 @@ Feature: Temporary Enrolments
     Then I should see "Test User" in the "#participantsform" "css_element"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
-    And I set the field "s__local_temporary_enrolments_length[v]" to "10"
-    And I select "seconds" from the "s__local_temporary_enrolments_length[u]" singleselect
+    And I set the field "s_local_temporary_enrolments_length[v]" to "10"
+    And I select "seconds" from the "s_local_temporary_enrolments_length[u]" singleselect
     And I press "Save changes"
     And I wait "10" seconds
     And I trigger cron
@@ -221,10 +221,10 @@ Feature: Temporary Enrolments
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
-    And I click on "s__local_temporary_enrolments_onoff" "checkbox"
-    And I select "test" from the "s__local_temporary_enrolments_roleid" singleselect
-    And I set the field "s__local_temporary_enrolments_length[v]" to "10"
-    And I select "seconds" from the "s__local_temporary_enrolments_length[u]" singleselect
+    And I click on "s_local_temporary_enrolments_onoff" "checkbox"
+    And I select "test" from the "s_local_temporary_enrolments_roleid" singleselect
+    And I set the field "s_local_temporary_enrolments_length[v]" to "10"
+    And I select "seconds" from the "s_local_temporary_enrolments_length[u]" singleselect
     And I press "Save changes"
     And I am on site homepage
     And I follow "Test Course"
@@ -253,8 +253,8 @@ Feature: Temporary Enrolments
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
-    And I click on "s__local_temporary_enrolments_onoff" "checkbox"
-    And I select "test" from the "s__local_temporary_enrolments_roleid" singleselect
+    And I click on "s_local_temporary_enrolments_onoff" "checkbox"
+    And I select "test" from the "s_local_temporary_enrolments_roleid" singleselect
     And I press "Save changes"
     And I am on site homepage
     And I follow "Upgrade Test"
@@ -276,27 +276,27 @@ Feature: Temporary Enrolments
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     Then the following fields match these values:
-      | s__local_temporary_enrolments_onoff                      | 0     |
-      | s__local_temporary_enrolments_length[v]                  | 2     |
-      | s__local_temporary_enrolments_length[u]                  | weeks |
+      | s_local_temporary_enrolments_onoff                      | 0     |
+      | s_local_temporary_enrolments_length[v]                  | 2     |
+      | s_local_temporary_enrolments_length[u]                  | weeks |
     And "weeks" "option" should be visible
     Given I click on ".nav-link[href='#local_temporary_enrolments_existingassignments']" "css_element"
     Then the following fields match these values:
-      | s__local_temporary_enrolments_existingassignments        | 1     |
-      | s__local_temporary_enrolments_existingassignments_start  | 1     |
-      | s__local_temporary_enrolments_existingassignments_email  | 1     |
+      | s_local_temporary_enrolments_existingassignments        | 1     |
+      | s_local_temporary_enrolments_existingassignments_start  | 1     |
+      | s_local_temporary_enrolments_existingassignments_email  | 1     |
     Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
-      | s__local_temporary_enrolments_remind_freq                | 2     |
-      | s__local_temporary_enrolments_studentinit_onoff          | 1     |
-      | s__local_temporary_enrolments_teacherinit_onoff          | 1     |
-      | s__local_temporary_enrolments_remind_onoff               | 1     |
-      | s__local_temporary_enrolments_expire_onoff               | 1     |
-      | s__local_temporary_enrolments_upgrade_onoff              | 1     |
-    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_studentinit_content" "css_element"
-    And I should see "Dear {TEACHER}" in the "#id_s__local_temporary_enrolments_teacherinit_content" "css_element"
-    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_remind_content" "css_element"
-    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_expire_content" "css_element"
-    And I should see "Dear {STUDENTFIRST}" in the "#id_s__local_temporary_enrolments_upgrade_content" "css_element"
+      | s_local_temporary_enrolments_remind_freq                | 2     |
+      | s_local_temporary_enrolments_studentinit_onoff          | 1     |
+      | s_local_temporary_enrolments_teacherinit_onoff          | 1     |
+      | s_local_temporary_enrolments_remind_onoff               | 1     |
+      | s_local_temporary_enrolments_expire_onoff               | 1     |
+      | s_local_temporary_enrolments_upgrade_onoff              | 1     |
+    And I should see "Dear {STUDENTFIRST}" in the "#id_s_local_temporary_enrolments_studentinit_content" "css_element"
+    And I should see "Dear {TEACHER}" in the "#id_s_local_temporary_enrolments_teacherinit_content" "css_element"
+    And I should see "Dear {STUDENTFIRST}" in the "#id_s_local_temporary_enrolments_remind_content" "css_element"
+    And I should see "Dear {STUDENTFIRST}" in the "#id_s_local_temporary_enrolments_expire_content" "css_element"
+    And I should see "Dear {STUDENTFIRST}" in the "#id_s_local_temporary_enrolments_upgrade_content" "css_element"
 
   @javascript
   Scenario: Testing config validation
@@ -304,31 +304,31 @@ Feature: Temporary Enrolments
     When I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
-    And I set the field "s__local_temporary_enrolments_remind_freq" to "0"
+    And I set the field "s_local_temporary_enrolments_remind_freq" to "0"
     And I press "Save changes"
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
-    Then the field "s__local_temporary_enrolments_remind_freq" matches value "2"
-    When I set the field "s__local_temporary_enrolments_remind_freq" to "2.1"
+    Then the field "s_local_temporary_enrolments_remind_freq" matches value "2"
+    When I set the field "s_local_temporary_enrolments_remind_freq" to "2.1"
     And I press "Save changes"
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
-    Then the field "s__local_temporary_enrolments_remind_freq" matches value "2"
-    When I set the field "s__local_temporary_enrolments_remind_freq" to "-1"
+    Then the field "s_local_temporary_enrolments_remind_freq" matches value "2"
+    When I set the field "s_local_temporary_enrolments_remind_freq" to "-1"
     And I press "Save changes"
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
-    Then the field "s__local_temporary_enrolments_remind_freq" matches value "2"
-    When I set the field "s__local_temporary_enrolments_remind_freq" to "123"
+    Then the field "s_local_temporary_enrolments_remind_freq" matches value "2"
+    When I set the field "s_local_temporary_enrolments_remind_freq" to "123"
     And I press "Save changes"
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
-    Then the field "s__local_temporary_enrolments_remind_freq" matches value "2"
-    When I set the field "s__local_temporary_enrolments_remind_freq" to "3"
+    Then the field "s_local_temporary_enrolments_remind_freq" matches value "2"
+    When I set the field "s_local_temporary_enrolments_remind_freq" to "3"
     And I press "Save changes"
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
-    Then the field "s__local_temporary_enrolments_remind_freq" matches value "3"
+    Then the field "s_local_temporary_enrolments_remind_freq" matches value "3"
 
   @javascript
   Scenario: Testing automatic removal of temporary enrolment if there is already a role
@@ -344,8 +344,8 @@ Feature: Temporary Enrolments
     And I log in as "admin"
     And I am on site homepage
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
-    And I click on "s__local_temporary_enrolments_onoff" "checkbox"
-    And I select "test" from the "s__local_temporary_enrolments_roleid" singleselect
+    And I click on "s_local_temporary_enrolments_onoff" "checkbox"
+    And I select "test" from the "s_local_temporary_enrolments_roleid" singleselect
     And I press "Save changes"
     When I am on site homepage
     And I follow "Auto Test"
