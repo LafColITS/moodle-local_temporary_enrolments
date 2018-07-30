@@ -48,8 +48,8 @@ Feature: Temporary Enrolments
     Then I should see "Four User" in the "#participantsform" "css_element"
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     And I select "roletwo" from the "s_local_temporary_enrolments_roleid" singleselect
-    And I click on "a.nav-link[href='#local_temporary_enrolments_existingassignments']" "css_element"
-    And I select "From right now" from the "s_local_temporary_enrolments_existingassignments_start" singleselect
+    And I click on "a.nav-link[href='#local_temporary_enrolments_existing_assignments']" "css_element"
+    And I select "From right now" from the "s_local_temporary_enrolments_existing_assignments_start" singleselect
     And I press "Save changes"
     And I trigger cron
     And I wait "60" seconds
@@ -111,8 +111,8 @@ Feature: Temporary Enrolments
     Then I should see "Four User" in the "#participantsform" "css_element"
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     And I select "roletwo" from the "s_local_temporary_enrolments_roleid" singleselect
-    And I click on "a.nav-link[href='#local_temporary_enrolments_existingassignments']" "css_element"
-    And I select "From assignment start time" from the "s_local_temporary_enrolments_existingassignments_start" singleselect
+    And I click on "a.nav-link[href='#local_temporary_enrolments_existing_assignments']" "css_element"
+    And I select "From assignment start time" from the "s_local_temporary_enrolments_existing_assignments_start" singleselect
     And I press "Save changes"
     And I wait "60" seconds
     And I trigger cron
@@ -280,11 +280,11 @@ Feature: Temporary Enrolments
       | s_local_temporary_enrolments_length[v]                  | 2     |
       | s_local_temporary_enrolments_length[u]                  | weeks |
     And "weeks" "option" should be visible
-    Given I click on ".nav-link[href='#local_temporary_enrolments_existingassignments']" "css_element"
+    Given I click on ".nav-link[href='#local_temporary_enrolments_existing_assignments']" "css_element"
     Then the following fields match these values:
-      | s_local_temporary_enrolments_existingassignments        | 1     |
-      | s_local_temporary_enrolments_existingassignments_start  | 1     |
-      | s_local_temporary_enrolments_existingassignments_email  | 1     |
+      | s_local_temporary_enrolments_existing_assignments        | 1     |
+      | s_local_temporary_enrolments_existing_assignments_start  | 1     |
+      | s_local_temporary_enrolments_existing_assignments_email  | 1     |
     Given I click on ".nav-link[href='#local_temporary_enrolments_email']" "css_element"
       | s_local_temporary_enrolments_remind_freq                | 2     |
       | s_local_temporary_enrolments_studentinit_onoff          | 1     |

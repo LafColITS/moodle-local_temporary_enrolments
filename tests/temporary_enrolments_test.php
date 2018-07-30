@@ -287,7 +287,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $this->emailHas(reset($check), $body, $subject, 'hpindahouse@hogwarts.owl');
 
         // And if the email option is turned off?
-        set_config('existingassignments_email', 0, 'local_temporary_enrolments');
+        set_config('existing_assignments_email', 0, 'local_temporary_enrolments');
         set_config('roleid', $testrole2, 'local_temporary_enrolments');
 
         $sink = $this->redirectEmails();
@@ -298,7 +298,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $this->assertEquals(count($results), 0);
 
         // Start time: at creation.
-        set_config('existingassignments_start', 0, 'local_temporary_enrolments');
+        set_config('existing_assignments_start', 0, 'local_temporary_enrolments');
         set_config('roleid', $testrole1, 'local_temporary_enrolments');
 
         $sink = $this->redirectEmails();
@@ -314,7 +314,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         // Start time: now.
         sleep(10); // To ensure a time gap between role assignment and this bit of the test.
-        set_config('existingassignments_start', 1, 'local_temporary_enrolments');
+        set_config('existing_assignments_start', 1, 'local_temporary_enrolments');
         set_config('roleid', $testrole2, 'local_temporary_enrolments');
 
         $sink = $this->redirectEmails();

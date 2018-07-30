@@ -34,7 +34,7 @@ use stdClass;
 class remind_task extends \core\task\scheduled_task {
 
     public function get_name() {
-        return get_string('remind_task', 'local_temporary_enrolments');
+        return get_string('task:remind', 'local_temporary_enrolments');
     }
 
     public function execute() {

@@ -36,7 +36,7 @@ use stdClass;
 class expire_task extends \core\task\scheduled_task {
 
     public function get_name() {
-        return get_string('expire_task', 'local_temporary_enrolments');
+        return get_string('task:expire', 'local_temporary_enrolments');
     }
 
     public function execute() {
