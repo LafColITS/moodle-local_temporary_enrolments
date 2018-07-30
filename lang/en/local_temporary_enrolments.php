@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['pluginname'] = 'Temporary enrolments';
 $string['settings:existing_assignments:desc'] = 'Manage existing role assignments?';
 $string['settings:existing_assignments:subdesc'] = 'If the selected temporary marker role is already assigned to some users: Do you want those role assignments to become temporary, and be brought under the management of this plugin?';
 $string['settings:existing_assignments_email:desc'] = 'Send emails for pre-existing assignments?';
@@ -39,12 +40,10 @@ $string['settings:expire_content:desc'] = 'Expiration email content';
 $string['settings:expire_content:subdesc'] = 'Emailed to student upon expiration of their temporary enrolment (if they have not been fully enrolled)';
 $string['settings:expire_onoff:desc'] = 'Expiration email on/off';
 $string['settings:expire_onoff:subdesc'] = 'Check the box to turn expiration emails on/off. This does not affect automatic unenrolment.';
-$string['task:expire'] = 'Check for expired temporary roles and remove them';
 $string['settings:length:desc'] = 'Duration of temporary enrolment';
 $string['settings:length:subdesc'] = 'How long temporary enrolment of a student will last before automatically expiring';
 $string['settings:onoff:desc'] = 'On/off';
 $string['settings:onoff:subdesc'] = 'Check the box to turn on plugin functionality';
-$string['pluginname'] = 'Temporary enrolments';
 $string['settings:remind_content:default'] = '{SUBJECT: Temporary enrolment reminder for {COURSE}}
 
 Dear {STUDENTFIRST},
@@ -56,7 +55,6 @@ $string['settings:remind_freq:desc'] = 'Reminder email frequency';
 $string['settings:remind_freq:subdesc'] = 'Reminder emails are sent every ____ days';
 $string['settings:remind_onoff:desc'] = 'Reminder email on/off';
 $string['settings:remind_onoff:subdesc'] = 'Check the box to turn reminder emails on or off.';
-$string['task:remind'] = 'Send out temporary enrolment reminder emails';
 $string['settings:roleid:desc'] = 'Temporary enrolment marker role';
 $string['settings:roleid:subdesc'] = 'The role which indicates that an enrolment is temporary.';
 $string['settings:studentinit_content:default'] = '{SUBJECT: Temporary enrolment granted for {COURSE}}
@@ -86,3 +84,5 @@ $string['settings:upgrade_content:desc'] = 'Upgrade email content';
 $string['settings:upgrade_content:subdesc'] = 'Emailed to student if they are enrolled fully (upgrading their enrolment to permanent status).';
 $string['settings:upgrade_onoff:desc'] = 'Upgrade email on/off';
 $string['settings:upgrade_onoff:subdesc'] = 'Check the box to turn upgrade email on/off. Does not affect actual enrolment.';
+$string['task:expire'] = 'Check for expired temporary roles and remove them';
+$string['task:remind'] = 'Send out temporary enrolment reminder emails';
