@@ -56,24 +56,14 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
         $expiration->timeend = 0;
     }
 
-    // Patterns and replaces for email generation.
-    $patterns = array(
-        '/\{TEACHER\}/',
-        '/\{STUDENTFIRST\}/',
-        '/\{STUDENTLAST\}/',
-        '/\{STUDENTFULL\}/',
-        '/\{COURSE\}/',
-        '/\{TIMELEFT\}/',
-        '/\{SUBJECT: (.*)\}\s+/',
-    );
-    $replaces = array(
-        $teacher->firstname,
-        $student->firstname,
-        $student->lastname,
-        fullname($student),
-        $course->fullname,
-        (round(($expiration->timeend - time()) / 86400)),
-        '',
+    $replace = array(
+        '/\{TEACHER\}/' => $teacher->firstname,
+        '/\{STUDENTFIRST\}/' => $student->firstname,
+        '/\{STUDENTLAST\}/' => $student->lastname,
+        '/\{STUDENTFULL\}/' => fullname($student),
+        '/\{COURSE\}/' => $course->fullname,
+        '/\{TIMELEFT\}/' => round(($expiration->timeend - time()) / 86400),
+        '/\{SUBJECT: (.*)\}\s+/' => '',
     );
 
     // Get raw email content.
@@ -84,8 +74,8 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
     preg_match("/\{SUBJECT: (.*)\}\s+/", $message, $subject); // Pull SUBJECT line out of message content.
 
     // Build final email body and subject and to address.
-    $subject = preg_replace($patterns, $replaces, $subject[1]);
-    $message = preg_replace($patterns, $replaces, $message);
+    $subject = preg_replace(array_keys($replace), array_values($replace), $subject[1]);
+    $message = preg_replace(array_keys($replace), array_values($replace), $message);
     $to = $DB->get_record('user', array('id' => $$sendto));
 
     // Send email.
