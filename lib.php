@@ -120,8 +120,7 @@ function handle_update_length() {
 function handle_update_reminder_freq() {
     global $DB;
     $remindfreq = get_config('local_temporary_enrolments', 'remind_freq');
-    $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
-    update_remind_freq($task, $remindfreq);
+    update_remind_freq($remindfreq);
 }
 
 function handle_existing_assignments() {
@@ -164,12 +163,10 @@ function handle_existing_assignments() {
  *
  * @return void
  */
-function update_remind_freq($task, $newfreq) {
-    global $DB;
-    $update = new stdClass();
-    $update->id = $task->id;
-    $update->day = '*/'.$newfreq;
-    $DB->update_record('task_scheduled', $update);
+function update_remind_freq($newfreq) {
+    $remind = \core\task\manager::get_scheduled_task('local_temporary_enrolments\task\remind_task');
+    $remind->set_day("*/$newfreq");
+    \core\task\manager::configure_scheduled_task($remind);
 }
 
 /**

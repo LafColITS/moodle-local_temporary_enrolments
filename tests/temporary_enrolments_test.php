@@ -495,7 +495,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
             $this->assertEquals('*/2', $task->day);
 
             set_config('remind_freq', 4, 'local_temporary_enrolments');
-            update_remind_freq($task, get_config('local_temporary_enrolments', 'remind_freq'));
+            update_remind_freq(get_config('local_temporary_enrolments', 'remind_freq'));
 
             $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
             $this->assertEquals('*/4', $task->day);
