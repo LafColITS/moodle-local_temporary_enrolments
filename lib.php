@@ -94,6 +94,12 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
 function add_to_custom_table($raid, $raroleid, $timecreated) {
     global $DB;
 
+    // Abort if this role assignment is already stored.
+    $dupe = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $raid, 'roleid' => $raroleid));
+    if ($dupe) {
+        return false;
+    }
+
     $insert = new stdClass();
     $insert->roleassignid = $raid;
     $insert->roleid = $raroleid; // Stored so we can easily check that table is up to date if role settings are changed.
@@ -101,6 +107,7 @@ function add_to_custom_table($raid, $raroleid, $timecreated) {
     $insert->timeend = $timecreated + $length;
     $insert->timestart = $timecreated;
     $DB->insert_record('local_temporary_enrolments', $insert);
+    return true;
 }
 
 function get_temp_role() {
@@ -123,36 +130,9 @@ function handle_update_reminder_freq() {
     update_remind_freq($remindfreq);
 }
 
-function handle_existing_assignments() {
-    global $DB;
-    // Wipe any outdated entries in the custom table.
-    $DB->delete_records('local_temporary_enrolments');
-    $roleid = get_temp_role()->id;
-    // Add existing role assignments.
-    $ss = "local_temporary_enrolments_existing_assignments"; // Setting name string.
-    $onoff = array_key_exists('s_'.$ss, $_POST) ? $_POST['s_'.$ss] : get_config('local_temporary_enrolments', 'existing_assignments');
-    if ($onoff) {
-        $toadd = $DB->get_records('role_assignments', array('roleid' => $roleid));
-        $now = time();
-        foreach ($toadd as $assignment) {
-            $start = array_key_exists('s_'.$ss.'_start', $_POST) ? $_POST['s_'.$ss.'_start'] : get_config('local_temporary_enrolments', 'existing_assignments_start');
-            $starttime = $assignment->timemodified; // Default.
-            if ($start) {
-                $starttime = $now;
-            }
-            add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
-            $sendemail = array_key_exists('s_'.$ss.'_email', $_POST) ? $_POST['s_'.$ss.'_email'] : get_config('local_temporary_enrolments', 'existing_assignments_email');
-            if ($sendemail) {
-                $assignerid = 1;
-                $assigneeid = $assignment->userid;
-                $context = $DB->get_record('context', array('id' => $assignment->contextid));
-                $courseid = $context->instanceid;
-                $raid = $assignment->id;
-                $which = 'studentinit';
-                send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
-            }
-        }
-    }
+function handle_update_roleid() {
+    $task = new \local_temporary_enrolments\task\existing_assignments_task();
+    \core\task\manager::queue_adhoc_task($task, true); // Second param checks for duplicate.
 }
 
 /**

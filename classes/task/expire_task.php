@@ -41,12 +41,14 @@ class expire_task extends \core\task\scheduled_task {
 
     public function execute() {
         global $DB;
-
+        get_config('local_temporary_enrolments', 'onoff');
+        return;
         if (get_config('local_temporary_enrolments', 'onoff')) {
 
             // Get temporary_enrolment role.
+            return;
             $role = get_temp_role();
-
+            return;
             // Iterate through entries in our custom table.
             $expirations = $DB->get_records('local_temporary_enrolments');
             foreach ($expirations as $expiration) {
