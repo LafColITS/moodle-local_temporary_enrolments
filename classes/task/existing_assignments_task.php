@@ -24,6 +24,7 @@ namespace local_temporary_enrolments\task;
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
+require_once($CFG->dirroot. '/lib/moodlelib.php');
 
 /**
  * Adhoc task that handles pre-existing role assignments (for when the temporary
@@ -38,20 +39,54 @@ class existing_assignments_task extends \core\task\adhoc_task {
     public function execute() {
         global $DB;
 
-        // $last_processed_roleid = get_config('local_temporary_enrolments', 'last_processed_roleid');
-        $roleid = get_temp_role()->id;
+        // purge_all_caches();
+        $cache = \cache::make('core', 'config');
+        // $cache->delete('local_temporary_enrolments');
+        $data = $cache->get('local_temporary_enrolments');
+        $cachedroleid = $data['roleid'] ?: 'NO VALUE';
+        file_put_contents('/var/www/html/vendor/bin/existingassignments.log', "In adhoc task, cache says role id is $cachedroleid\n", FILE_APPEND);
 
-        file_put_contents('existingassignments.log', "____________________________\n", FILE_APPEND);
-        $rolename = \get_temp_role()->name;
-        file_put_contents('existingassignments.log', "Role id is $roleid, name $rolename\n", FILE_APPEND);
+        // set_config('onoff', 1, 'local_temporary_enrolments');
+
+        // $last_processed_roleid = get_config('local_temporary_enrolments', 'last_processed_roleid');
+
+        // file_put_contents('existingassignments.log', "____________________________\n", FILE_APPEND);
+        // $rolename = \get_temp_role()->name;
+        // $role = get_temp_role();
+        // $roleid = $role->id;
+        // $roleid = get_config('local_temporary_enrolments', 'roleid');
+        //SELECT * FROM b_config_plugins WHERE plugin='local_temporary_enrolments' AND name='roleid'
+        if ($roleid = $DB->get_record('config_plugins', array('plugin' => 'local_temporary_enrolments', 'name' => 'roleid'))->value) {
+            if ($role = $DB->get_record('role', array('id' => $roleid))) {
+                $rolename = $role->shortname;
+            } else {
+                $rolename = '!no role!';
+            }
+        } else {
+            $rolename = '!no role!';
+        }
+
+        if ($cachedroleid = get_config('local_temporary_enrolments', 'roleid')) {
+            if ($cachedrole = $DB->get_record('role', array('id' => $cachedroleid))) {
+                $cachedrolename = $cachedrole->shortname;
+            } else {
+                $cachedrolename = '!no role!';
+            }
+        } else {
+            $cachedrolename = '!no role!';
+        }
         $now = time();
-        file_put_contents('existingassignments.log', "Now it is $now\n", FILE_APPEND);
+        // file_put_contents('existingassignments.log', "IN ADHOC TASK IT IS $now\n", FILE_APPEND);
+        // file_put_contents('existingassignments.log', "Real role is $rolename\n", FILE_APPEND);
+        // file_put_contents('existingassignments.log', "Cached role is $cachedrolename\n", FILE_APPEND);
+
 
 
         // if ($last_processed_roleid && $last_processed_roleid === $roleid) {
         //     file_put_contents('existingassignments.log', "aborting due to same id\n", FILE_APPEND);
         //     return;
         // }
+        $roleid = get_temp_role()->id;
 
         file_put_contents('existingassignments.log', "1\n", FILE_APPEND);
 
@@ -79,16 +114,16 @@ class existing_assignments_task extends \core\task\adhoc_task {
         foreach ($toadd as $assignment) {
             if ($timestart == 0) { // User has selected "assignment creation" as start time.
                 $starttime = $assignment->timemodified;
-                file_put_contents('existingassignments.log', "starttime is $starttime and $now is $now\n", FILE_APPEND);
+                // file_put_contents('existingassignments.log', "starttime is $starttime and $now is $now\n", FILE_APPEND);
             } else { // User has selected "now" as start time.
                 $starttime = $now;
-                file_put_contents('existingassignments.log', "starttime is $starttime and $now is $now\n", FILE_APPEND);
+                // file_put_contents('existingassignments.log', "starttime is $starttime and $now is $now\n", FILE_APPEND);
             }
             $temp = add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
             if ($temp) {
-                file_put_contents('existingassignments.log', "added to table\n", FILE_APPEND);
+                // file_put_contents('existingassignments.log', "added to table\n", FILE_APPEND);
             } else {
-                file_put_contents('existingassignments.log', "DID NOT add to table\n", FILE_APPEND);
+                // file_put_contents('existingassignments.log', "DID NOT add to table\n", FILE_APPEND);
             }
             if ($sendemail) {
                 $assignerid = 1;

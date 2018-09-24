@@ -28,6 +28,18 @@ require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 if ($hassiteconfig) {
     global $DB;
 
+    if ($role = get_temp_role()) {
+        // echo '<div id="temp-behat-test-div">';
+        // // print_r($role);
+        // $now = time();
+        $cache = \cache::make('core', 'config');
+        $data = $cache->get('local_temporary_enrolments');
+        $cachedroleid = $data['roleid'] ?: 'NO VALUE';
+        file_put_contents('/var/www/html/vendor/bin/existingassignments.log', "On settings page, cache says role id is $cachedroleid\n", FILE_APPEND);
+        // print($role->shortname);
+        // echo '</div>';
+    }
+
     // Begin the actual settings.
     $pluginname = get_string('pluginname', 'local_temporary_enrolments');
     $settings = new theme_boost_admin_settingspage_tabs('local_temporary_enrolments', $pluginname);

@@ -37,6 +37,8 @@ Feature: Temporary Enrolments
     And I enrol "userfour" user as "Role Two"
     # And I wait "10" seconds
     And I run the scheduled task "\local_temporary_enrolments\task\expire_task"
+    # And I run all adhoc tasks
+      # And I run all adhoc tasks
     # And I reload the page
     # Then I should not see "One User" in the "#participantsform" "css_element"
     # Then I should not see "Two User" in the "#participantsform" "css_element"
@@ -44,9 +46,14 @@ Feature: Temporary Enrolments
     # Then I should see "Four User" in the "#participantsform" "css_element"
     And I navigate to "Temporary enrolments" node in "Site administration>Plugins>Local plugins"
     And I select "roletwo" from the "s_local_temporary_enrolments_roleid" singleselect
+    # And the following config values are set as admin:
+    #   | onoff | 1 | local_temporary_enrolments |
     # And I click on "a.nav-link[href='#local_temporary_enrolments_existing_assignments']" "css_element"
     # And I select "From assignment start time" from the "s_local_temporary_enrolments_existing_assignments_start" singleselect
     And I press "Save changes"
+    And I wait until the page is ready
+    # Then I should see "roletwo" in the "#temp-behat-test-div" "css_element"
+    # And I should see "alsdnfasjdfn"
     And I wait "10" seconds
     And I run all adhoc tasks
     # And I run the scheduled task "\local_temporary_enrolments\task\expire_task"
