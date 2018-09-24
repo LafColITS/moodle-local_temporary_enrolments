@@ -130,7 +130,9 @@ function handle_update_reminder_freq() {
 }
 
 function handle_update_roleid() {
-    $newroleid = required_param('s_local_temporary_enrolments_roleid', PARAM_ALPHANUMTEXT);
+    global $DB;
+
+    $newroleid = required_param('s_local_temporary_enrolments_roleid', PARAM_ALPHANUMEXT);
     $oldroleid = get_temp_role()->id;
 
     // Delete custom table entries (for old role only).
