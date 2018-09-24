@@ -53,7 +53,7 @@ if ($hassiteconfig) {
         get_string('settings:roleid:subdesc', 'local_temporary_enrolments'),
         0,
         $options);
-    $temp->set_updatedcallback('handle_existing_assignments');
+    $temp->set_updatedcallback('handle_update_roleid');
     $page->add($temp);
 
     // Duration.
