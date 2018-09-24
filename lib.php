@@ -129,36 +129,20 @@ function handle_update_reminder_freq() {
     update_remind_freq($remindfreq);
 }
 
-function handle_existing_assignments() {
-    global $DB;
-    // Wipe any outdated entries in the custom table.
-    $DB->delete_records('local_temporary_enrolments');
-    $roleid = get_temp_role()->id;
-    // Add existing role assignments.
-    $ss = "local_temporary_enrolments_existing_assignments"; // Setting name string.
-    $onoff = array_key_exists('s_'.$ss, $_POST) ? $_POST['s_'.$ss] : get_config('local_temporary_enrolments', 'existing_assignments');
-    if ($onoff) {
-        $toadd = $DB->get_records('role_assignments', array('roleid' => $roleid));
-        $now = time();
-        foreach ($toadd as $assignment) {
-            $start = array_key_exists('s_'.$ss.'_start', $_POST) ? $_POST['s_'.$ss.'_start'] : get_config('local_temporary_enrolments', 'existing_assignments_start');
-            $starttime = $assignment->timemodified; // Default.
-            if ($start) {
-                $starttime = $now;
-            }
-            add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
-            $sendemail = array_key_exists('s_'.$ss.'_email', $_POST) ? $_POST['s_'.$ss.'_email'] : get_config('local_temporary_enrolments', 'existing_assignments_email');
-            if ($sendemail) {
-                $assignerid = 1;
-                $assigneeid = $assignment->userid;
-                $context = $DB->get_record('context', array('id' => $assignment->contextid));
-                $courseid = $context->instanceid;
-                $raid = $assignment->id;
-                $which = 'studentinit';
-                send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
-            }
-        }
+function handle_update_roleid() {
+    // If there's already an adhoc task scheduled, remove it.
+    $existingtask = \core\task\manager::get_adhoc_task('\local_temporary_enrolments\task\existing_assignments_task');
+    if ($existingtask) {
+        \core\task\manager::adhoc_task_failed($existingtask);
     }
+
+    // Now make a new task and schedule it.
+    $task = new \local_temporary_enrolments\task\existing_assignments_task();
+    $taskdata = new stdClass();
+    $taskdata->newroleid = required_param('s_local_temporary_enrolments_roleid', PARAM_ALPHANUMEXT);
+    $taskdata->oldroleid = get_temp_role()->id;
+    $task->set_custom_data($taskdata);
+    \core\task\manager::queue_adhoc_task($task);
 }
 
 /**
