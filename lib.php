@@ -130,16 +130,22 @@ function handle_update_reminder_freq() {
 }
 
 function handle_update_roleid() {
-    // If there's already an adhoc task scheduled, remove it.
+    // If there's already an existing task, remove it.
     $existingtask = \core\task\manager::get_adhoc_task('\local_temporary_enrolments\task\existing_assignments_task');
     if ($existingtask) {
         \core\task\manager::adhoc_task_failed($existingtask);
     }
 
-    // Now make a new task and schedule it.
+    // If the roleid being set now the same as the last processed roleid, bail out.
+    $lastprocessedid = get_config('local_temporary_enrolments', 'last_processed_roleid');
+    if ($lastprocessedid == $newroleid) {
+        return true;
+    }
+
+    // Make a new task and schedule it.
     $task = new \local_temporary_enrolments\task\existing_assignments_task();
     $taskdata = new stdClass();
-    $taskdata->newroleid = required_param('s_local_temporary_enrolments_roleid', PARAM_ALPHANUMEXT);
+    $taskdata->newroleid = $newroleid;
     $taskdata->oldroleid = get_temp_role()->id;
     $task->set_custom_data($taskdata);
     \core\task\manager::queue_adhoc_task($task);
