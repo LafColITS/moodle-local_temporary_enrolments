@@ -94,13 +94,19 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
 function add_to_custom_table($raid, $raroleid, $timecreated) {
     global $DB;
 
+    // Abort if this role assignment is already stored.
+    $dupe = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $raid, 'roleid' => $raroleid));
+    if ($dupe) {
+        return false;
+    }
+
     $insert = new stdClass();
     $insert->roleassignid = $raid;
     $insert->roleid = $raroleid; // Stored so we can easily check that table is up to date if role settings are changed.
     $length = get_config('local_temporary_enrolments', 'length');
     $insert->timeend = $timecreated + $length;
     $insert->timestart = $timecreated;
-    $DB->insert_record('local_temporary_enrolments', $insert);
+    return $DB->insert_record('local_temporary_enrolments', $insert);
 }
 
 function get_temp_role() {
