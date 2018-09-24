@@ -130,16 +130,16 @@ function handle_update_reminder_freq() {
 }
 
 function handle_update_roleid() {
+    $newroleid = required_param('s_local_temporary_enrolments_roleid', PARAM_ALPHANUMTEXT);
+    $oldroleid = get_temp_role()->id;
+
+    // Delete custom table entries (for old role only).
+    $DB->delete_records_select('local_temporary_enrolments', "roleid <> $oldroleid");
+
     // If there's already an existing task, remove it.
     $existingtask = \core\task\manager::get_adhoc_task('\local_temporary_enrolments\task\existing_assignments_task');
     if ($existingtask) {
         \core\task\manager::adhoc_task_failed($existingtask);
-    }
-
-    // If the roleid being set now the same as the last processed roleid, bail out.
-    $lastprocessedid = get_config('local_temporary_enrolments', 'last_processed_roleid');
-    if ($lastprocessedid == $newroleid) {
-        return true;
     }
 
     // Make a new task and schedule it.

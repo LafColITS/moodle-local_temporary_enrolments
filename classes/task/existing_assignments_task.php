@@ -47,9 +47,6 @@ class existing_assignments_task extends \core\task\adhoc_task {
         $newroleid = $customdata->newroleid;
         $oldroleid = $customdata->oldroleid;
 
-        // Delete custom table entries (for old role only).
-        $DB->delete_records_select('local_temporary_enrolments', "roleid <> $oldroleid");
-
         // Add existing role assignments.
         $toadd = $DB->get_records('role_assignments', array('roleid' => $newroleid));
         $now = time();
@@ -73,6 +70,5 @@ class existing_assignments_task extends \core\task\adhoc_task {
                 send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
             }
         }
-        set_config('last_processed_roleid', $roleid, 'local_temporary_enrolments');
     }
 }
