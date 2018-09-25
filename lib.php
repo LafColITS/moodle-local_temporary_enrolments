@@ -112,7 +112,7 @@ function add_to_custom_table($raid, $raroleid, $timecreated) {
 function get_temp_role() {
     global $DB;
 
-    if ($id = get_config('local_temporary_enrolments', 'roleid')) {
+    if ($id = $DB->get_record('config_plugins', array('plugin' => 'local_temporary_enrolments', 'name' => 'roleid') )->value ) {
         return $DB->get_record('role', array('id' => $id));
     }
 }
@@ -139,9 +139,9 @@ function handle_update_roleid() {
     $DB->delete_records_select('local_temporary_enrolments', "roleid <> $oldroleid");
 
     // If there's already an existing task, remove it.
-    $existingtask = \core\task\manager::get_adhoc_task('\local_temporary_enrolments\task\existing_assignments_task');
-    if ($existingtask) {
-        \core\task\manager::adhoc_task_failed($existingtask);
+    $existingtask = \core\task\manager::get_adhoc_tasks('\local_temporary_enrolments\task\existing_assignments_task');
+    if (gettype($existingtask) == 'object') {
+        \core\task\manager::adhoc_task_complete($existingtask);
     }
 
     // Make a new task and schedule it.
