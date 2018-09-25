@@ -129,6 +129,24 @@ function handle_update_reminder_freq() {
     update_remind_freq($remindfreq);
 }
 
+function wipe_table($roleid = null) {
+    global $DB;
+
+    if ($roleid !== null) {
+        $DB->delete_records_select('local_temporary_enrolments', "roleid <> $roleid");
+    } else {
+        $DB->delete_records('local_temporary_enrolments');
+    }
+}
+
+function make_task($roleid) {
+    $task = new \local_temporary_enrolments\task\existing_assignments_task();
+    $taskdata = new stdClass();
+    $taskdata->newroleid = $roleid;
+    $task->set_custom_data($taskdata);
+    return $task;
+}
+
 function handle_update_roleid() {
     global $DB;
 
@@ -136,7 +154,7 @@ function handle_update_roleid() {
     $oldroleid = get_temp_role()->id;
 
     // Delete custom table entries (for old role only).
-    $DB->delete_records_select('local_temporary_enrolments', "roleid <> $oldroleid");
+    wipe_table($oldroleid);
 
     // If there's already an existing task, remove it.
     $existingtask = \core\task\manager::get_adhoc_tasks('\local_temporary_enrolments\task\existing_assignments_task');
@@ -145,11 +163,7 @@ function handle_update_roleid() {
     }
 
     // Make a new task and schedule it.
-    $task = new \local_temporary_enrolments\task\existing_assignments_task();
-    $taskdata = new stdClass();
-    $taskdata->newroleid = $newroleid;
-    $taskdata->oldroleid = get_temp_role()->id;
-    $task->set_custom_data($taskdata);
+    $task = make_task($newroleid);
     \core\task\manager::queue_adhoc_task($task);
 }
 

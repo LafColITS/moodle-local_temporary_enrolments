@@ -48,7 +48,6 @@ class existing_assignments_task extends \core\task\adhoc_task {
         $customdata = $this->get_custom_data();
 
         $newroleid = $customdata->newroleid;
-        $oldroleid = $customdata->oldroleid;
 
         // Add existing role assignments.
         $toadd = $DB->get_records('role_assignments', array('roleid' => $newroleid));

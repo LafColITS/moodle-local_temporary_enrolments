@@ -138,6 +138,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
      * @return void
      */
     public function emailHas($email, $body, $subject, $to) {
+        $this->assertInternalType('object', $email);
         $this->assertContains('Auto-Submitted: auto-generated', $email->header);
         $this->assertContains('noreply@', $email->from);
         foreach ($body as $s) {
@@ -258,7 +259,9 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         set_config('roleid', $testrole2, 'local_temporary_enrolments');
         // Temp role is now test_role2.
         $sink = $this->redirectEmails();
-        handle_existing_assignments();
+        wipe_table();
+        $task = make_task($testrole2);
+        $task->execute();
         $sink->close();
 
         $currententries = $DB->get_records('local_temporary_enrolments');
@@ -271,7 +274,9 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         set_config('roleid', $testrole1, 'local_temporary_enrolments');
 
         $sink = $this->redirectEmails();
-        handle_existing_assignments();
+        wipe_table();
+        $task = make_task($testrole1);
+        $task->execute();
         $sink->close();
         $results = $sink->get_messages();
 
@@ -291,7 +296,9 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         set_config('roleid', $testrole2, 'local_temporary_enrolments');
 
         $sink = $this->redirectEmails();
-        handle_existing_assignments();
+        wipe_table();
+        $task = make_task($testrole2);
+        $task->execute();
         $sink->close();
         $results = $sink->get_messages();
 
@@ -302,7 +309,9 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         set_config('roleid', $testrole1, 'local_temporary_enrolments');
 
         $sink = $this->redirectEmails();
-        handle_existing_assignments();
+        wipe_table();
+        $task = make_task($testrole1);
+        $task->execute();
         $sink->close();
 
         $currententries = $DB->get_records('local_temporary_enrolments');
@@ -318,7 +327,9 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         set_config('roleid', $testrole2, 'local_temporary_enrolments');
 
         $sink = $this->redirectEmails();
-        handle_existing_assignments();
+        wipe_table();
+        $task = make_task($testrole2);
+        $task->execute();
         $sink->close();
 
         $currententries = $DB->get_records('local_temporary_enrolments');
