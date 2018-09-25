@@ -94,19 +94,25 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
 function add_to_custom_table($raid, $raroleid, $timecreated) {
     global $DB;
 
+    // Abort if this role assignment is already stored.
+    $dupe = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $raid, 'roleid' => $raroleid));
+    if ($dupe) {
+        return false;
+    }
+
     $insert = new stdClass();
     $insert->roleassignid = $raid;
     $insert->roleid = $raroleid; // Stored so we can easily check that table is up to date if role settings are changed.
     $length = get_config('local_temporary_enrolments', 'length');
     $insert->timeend = $timecreated + $length;
     $insert->timestart = $timecreated;
-    $DB->insert_record('local_temporary_enrolments', $insert);
+    return $DB->insert_record('local_temporary_enrolments', $insert);
 }
 
 function get_temp_role() {
     global $DB;
 
-    if ($id = get_config('local_temporary_enrolments', 'roleid')) {
+    if ($id = $DB->get_record('config_plugins', array('plugin' => 'local_temporary_enrolments', 'name' => 'roleid') )->value ) {
         return $DB->get_record('role', array('id' => $id));
     }
 }
@@ -123,36 +129,42 @@ function handle_update_reminder_freq() {
     update_remind_freq($remindfreq);
 }
 
-function handle_existing_assignments() {
+function wipe_table($roleid = null) {
     global $DB;
-    // Wipe any outdated entries in the custom table.
-    $DB->delete_records('local_temporary_enrolments');
-    $roleid = get_temp_role()->id;
-    // Add existing role assignments.
-    $ss = "local_temporary_enrolments_existing_assignments"; // Setting name string.
-    $onoff = array_key_exists('s_'.$ss, $_POST) ? $_POST['s_'.$ss] : get_config('local_temporary_enrolments', 'existing_assignments');
-    if ($onoff) {
-        $toadd = $DB->get_records('role_assignments', array('roleid' => $roleid));
-        $now = time();
-        foreach ($toadd as $assignment) {
-            $start = array_key_exists('s_'.$ss.'_start', $_POST) ? $_POST['s_'.$ss.'_start'] : get_config('local_temporary_enrolments', 'existing_assignments_start');
-            $starttime = $assignment->timemodified; // Default.
-            if ($start) {
-                $starttime = $now;
-            }
-            add_to_custom_table($assignment->id, $assignment->roleid, $starttime);
-            $sendemail = array_key_exists('s_'.$ss.'_email', $_POST) ? $_POST['s_'.$ss.'_email'] : get_config('local_temporary_enrolments', 'existing_assignments_email');
-            if ($sendemail) {
-                $assignerid = 1;
-                $assigneeid = $assignment->userid;
-                $context = $DB->get_record('context', array('id' => $assignment->contextid));
-                $courseid = $context->instanceid;
-                $raid = $assignment->id;
-                $which = 'studentinit';
-                send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $raid, $which);
-            }
-        }
+
+    if ($roleid !== null) {
+        $DB->delete_records_select('local_temporary_enrolments', "roleid <> $roleid");
+    } else {
+        $DB->delete_records('local_temporary_enrolments');
     }
+}
+
+function make_task($roleid) {
+    $task = new \local_temporary_enrolments\task\existing_assignments_task();
+    $taskdata = new stdClass();
+    $taskdata->newroleid = $roleid;
+    $task->set_custom_data($taskdata);
+    return $task;
+}
+
+function handle_update_roleid() {
+    global $DB;
+
+    $newroleid = required_param('s_local_temporary_enrolments_roleid', PARAM_ALPHANUMEXT);
+    $oldroleid = get_temp_role()->id;
+
+    // Delete custom table entries (for old role only).
+    wipe_table($oldroleid);
+
+    // If there's already an existing task, remove it.
+    $existingtask = \core\task\manager::get_adhoc_tasks('\local_temporary_enrolments\task\existing_assignments_task');
+    if (gettype($existingtask) == 'object') {
+        \core\task\manager::adhoc_task_complete($existingtask);
+    }
+
+    // Make a new task and schedule it.
+    $task = make_task($newroleid);
+    \core\task\manager::queue_adhoc_task($task);
 }
 
 /**
