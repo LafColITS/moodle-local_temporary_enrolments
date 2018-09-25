@@ -4,182 +4,23 @@ Feature: Temporary Enrolments
   As an admin
   I need to make a test course
 
-  @javascript
-  Scenario: Testing existing role assignment start time: now
+  Background:
     Given the following "courses" exist:
-      | fullname    | shortname   | numsections |
-      | Test Course | testcourse  | 44          |
+      | fullname    | shortname    |
+      | Test Course | testcourse   |
+      | Upgrade Test | upgradetest |
+      | Auto Test   | autotest     |
     Given the following "users" exist:
-      | username  | firstname | lastname |
-      | userone   | One       | User     |
-      | usertwo   | Two       | User     |
-      | userthree | Three     | User     |
-      | userfour  | Four      | User     |
-    Given the following "roles" exist:
-      | name      | shortname |
-      | Role One  | roleone   |
-      | Role Two  | roletwo   |
-    When I log in as "admin"
-    And I am on site homepage
-    And I navigate to "Plugins > Local plugins > Temporary enrolments" in site administration
-    And I click on "s_local_temporary_enrolments_onoff" "checkbox"
-    And I select "roleone" from the "s_local_temporary_enrolments_roleid" singleselect
-    And I set the field "s_local_temporary_enrolments_length[v]" to "10"
-    And I select "seconds" from the "s_local_temporary_enrolments_length[u]" singleselect
-    And I press "Save changes"
-    And I am on site homepage
-    And I follow "Test Course"
-    And I wait until the page is ready
-    And I follow "Participants"
-    And I enrol "userone" user as "Role One"
-    And I enrol "usertwo" user as "Role One"
-    And I enrol "userthree" user as "Role Two"
-    And I enrol "userfour" user as "Role Two"
-    And I wait "10" seconds
-    And I run the scheduled task "\local_temporary_enrolments\task\expire_task"
-    And I wait "60" seconds
-    And I am on site homepage
-    And I follow "Test Course"
-    And I wait until the page is ready
-    When I follow "Participants"
-    Then I should not see "One User" in the "#participantsform" "css_element"
-    Then I should not see "Two User" in the "#participantsform" "css_element"
-    Then I should see "Three User" in the "#participantsform" "css_element"
-    Then I should see "Four User" in the "#participantsform" "css_element"
-    And I navigate to "Plugins > Local plugins > Temporary enrolments" in site administration
-    And I select "roletwo" from the "s_local_temporary_enrolments_roleid" singleselect
-    And I click on "a.nav-link[href='#local_temporary_enrolments_existing_assignments']" "css_element"
-    And I select "From right now" from the "s_local_temporary_enrolments_existing_assignments_start" singleselect
-    And I press "Save changes"
-    And I run the scheduled task "\local_temporary_enrolments\task\expire_task"
-    And I wait "60" seconds
-    And I am on site homepage
-    And I follow "Test Course"
-    And I wait until the page is ready
-    And I follow "Participants"
-    Then I should see "Three User" in the "#participantsform" "css_element"
-    Then I should see "Four User" in the "#participantsform" "css_element"
-    And I wait "10" seconds
-    And I run the scheduled task "\local_temporary_enrolments\task\expire_task"
-    And I am on site homepage
-    And I follow "Test Course"
-    And I wait until the page is ready
-    And I follow "Participants"
-    Then I should not see "Three User" in the "#participantsform" "css_element"
-    Then I should not see "Four User" in the "#participantsform" "css_element"
-
-  @javascript
-  Scenario: Testing existing role assignment start time: at creation
-    Given the following "courses" exist:
-      | fullname    | shortname   | numsections |
-      | Test Course | testcourse  | 44          |
-    Given the following "users" exist:
-      | username  | firstname | lastname |
-      | userone   | One       | User     |
-      | usertwo   | Two       | User     |
-      | userthree | Three     | User     |
-      | userfour  | Four      | User     |
-    Given the following "roles" exist:
-      | name      | shortname |
-      | Role One  | roleone   |
-      | Role Two  | roletwo   |
-    When I log in as "admin"
-    And I am on site homepage
-    And I navigate to "Plugins > Local plugins > Temporary enrolments" in site administration
-    And I click on "s_local_temporary_enrolments_onoff" "checkbox"
-    And I select "roleone" from the "s_local_temporary_enrolments_roleid" singleselect
-    And I set the field "s_local_temporary_enrolments_length[v]" to "10"
-    And I select "seconds" from the "s_local_temporary_enrolments_length[u]" singleselect
-    And I press "Save changes"
-    And I am on site homepage
-    And I follow "Test Course"
-    And I wait until the page is ready
-    And I follow "Participants"
-    And I enrol "userone" user as "Role One"
-    And I enrol "usertwo" user as "Role One"
-    And I enrol "userthree" user as "Role Two"
-    And I enrol "userfour" user as "Role Two"
-    And I wait "10" seconds
-    And I run the scheduled task "\local_temporary_enrolments\task\expire_task"
-    And I am on site homepage
-    And I follow "Test Course"
-    And I wait until the page is ready
-    When I follow "Participants"
-    Then I should not see "One User" in the "#participantsform" "css_element"
-    Then I should not see "Two User" in the "#participantsform" "css_element"
-    Then I should see "Three User" in the "#participantsform" "css_element"
-    Then I should see "Four User" in the "#participantsform" "css_element"
-    And I navigate to "Plugins > Local plugins > Temporary enrolments" in site administration
-    And I select "roletwo" from the "s_local_temporary_enrolments_roleid" singleselect
-    And I click on "a.nav-link[href='#local_temporary_enrolments_existing_assignments']" "css_element"
-    And I select "From assignment start time" from the "s_local_temporary_enrolments_existing_assignments_start" singleselect
-    And I press "Save changes"
-    And I wait "60" seconds
-    And I run the scheduled task "\local_temporary_enrolments\task\expire_task"
-    And I am on site homepage
-    And I follow "Test Course"
-    And I wait until the page is ready
-    And I follow "Participants"
-    Then I should not see "Three User" in the "#participantsform" "css_element"
-    Then I should not see "Four User" in the "#participantsform" "css_element"
-
-  @javascript
-  Scenario: Testing existing role assignment base behavior
-    Given the following "courses" exist:
-      | fullname    | shortname   | numsections |
-      | Test Course | testcourse  | 44          |
-    Given the following "users" exist:
-      | username  | firstname | lastname |
-      | userone   | One       | User     |
-      | usertwo   | Two       | User     |
-      | userthree | Three     | User     |
-      | userfour  | Four      | User     |
-    Given the following "roles" exist:
-      | name      | shortname |
-      | Role One  | roleone   |
-      | Role Two  | roletwo   |
-    When I log in as "admin"
-    And I am on site homepage
-    And I navigate to "Plugins > Local plugins > Temporary enrolments" in site administration
-    And I click on "s_local_temporary_enrolments_onoff" "checkbox"
-    And I select "roleone" from the "s_local_temporary_enrolments_roleid" singleselect
-    And I press "Save changes"
-    And I am on site homepage
-    And I follow "Test Course"
-    And I wait until the page is ready
-    And I follow "Participants"
-    And I enrol "userone" user as "Role One"
-    And I enrol "usertwo" user as "Role One"
-    And I enrol "userthree" user as "Role Two"
-    And I enrol "userfour" user as "Role Two"
-    And I am on site homepage
-    And I navigate to "Plugins > Local plugins > Temporary enrolments" in site administration
-    And I select "roletwo" from the "s_local_temporary_enrolments_roleid" singleselect
-    And I set the field "s_local_temporary_enrolments_length[v]" to "10"
-    And I select "seconds" from the "s_local_temporary_enrolments_length[u]" singleselect
-    And I press "Save changes"
-    And I wait "10" seconds
-    And I run the scheduled task "\local_temporary_enrolments\task\expire_task"
-    And I am on site homepage
-    And I follow "Test Course"
-    And I wait until the page is ready
-    When I follow "Participants"
-    Then I should see "One User" in the "#participantsform" "css_element"
-    Then I should see "Two User" in the "#participantsform" "css_element"
-    Then I should not see "Three User" in the "#participantsform" "css_element"
-    Then I should not see "Four User" in the "#participantsform" "css_element"
-
-  @javascript
-  Scenario: Testing temp enrolment length updating
-    Given the following "courses" exist:
-      | fullname    | shortname   | numsections |
-      | Test Course | testcourse  | 44          |
-    Given the following "users" exist:
-      | username  | firstname | lastname |
-      | testuser  | Test      | User     |
+      | username    | firstname | lastname |
+      | testuser    | Test      | User     |
+      | upgradeuser | Upgrade   | User     |
+      | autouser    | Otto      | User     |
     Given the following "roles" exist:
       | name      | shortname |
       | Test Role | test      |
+
+  @javascript
+  Scenario: Testing temp enrolment length updating
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Plugins > Local plugins > Temporary enrolments" in site administration
@@ -209,15 +50,6 @@ Feature: Temporary Enrolments
 
   @javascript
   Scenario: Testing automatic unenrolment after time
-    Given the following "courses" exist:
-      | fullname    | shortname   | numsections |
-      | Test Course | testcourse  | 44          |
-    Given the following "users" exist:
-      | username  | firstname | lastname |
-      | testuser  | Test      | User     |
-    Given the following "roles" exist:
-      | name      | shortname |
-      | Test Role | test      |
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Plugins > Local plugins > Temporary enrolments" in site administration
@@ -241,15 +73,6 @@ Feature: Temporary Enrolments
 
   @javascript
   Scenario: Testing temporary enrolments plugin upgrade functionality
-    And the following "courses" exist:
-      | fullname     | shortname   | numsections |
-      | Upgrade Test | upgradetest | 44          |
-    And the following "users" exist:
-      | username    | firstname | lastname |
-      | upgradeuser | Upgrade   | User     |
-    And the following "roles" exist:
-      | name      | shortname |
-      | Test Role | test      |
     When I log in as "admin"
     And I am on site homepage
     And I navigate to "Plugins > Local plugins > Temporary enrolments" in site administration
@@ -332,15 +155,6 @@ Feature: Temporary Enrolments
 
   @javascript
   Scenario: Testing automatic removal of temporary enrolment if there is already a role
-    And the following "courses" exist:
-    | fullname    | shortname  | numsections |
-    | Auto Test   | autotest   | 15          |
-    And the following "users" exist:
-    | username   | firstname | lastname |
-    | autouser   | Otto      | User     |
-    And the following "roles" exist:
-    | name      | shortname |
-    | Test Role | test      |
     And I log in as "admin"
     And I am on site homepage
     And I navigate to "Plugins > Local plugins > Temporary enrolments" in site administration
