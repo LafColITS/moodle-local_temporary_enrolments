@@ -26,21 +26,31 @@ namespace local_temporary_enrolments\task;
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
-use stdClass;
 
 /**
  * Scheduled task (cron task) that sends out reminder emails.
+ *
+ * @copyright  2018 onwards Lafayette College ITS
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class remind_task extends \core\task\scheduled_task {
 
+    /**
+     * Get name of scheduled task.
+     *
+     * @return string The name of the scheduled task.
+     */
     public function get_name() {
-        return get_string('remind_task', 'local_temporary_enrolments');
+        return get_string('task:remind', 'local_temporary_enrolments');
     }
 
+    /**
+     * Execute scheduled task.
+     */
     public function execute() {
-        global $DB, $CFG;
+        global $DB;
 
-        if ($CFG->local_temporary_enrolments_onoff) {
+        if (get_config('local_temporary_enrolments', 'onoff')) {
 
             // Get temporary_enrolment role id.
             $role = get_temp_role();
@@ -50,7 +60,7 @@ class remind_task extends \core\task\scheduled_task {
             foreach ($roleassignments as $roleassignment) {
                 // Send reminder email.
                 $managedbyplugin = $DB->count_records('local_temporary_enrolments', array('roleassignid' => $roleassignment->id));
-                if ($CFG->local_temporary_enrolments_remind_onoff && $managedbyplugin > 0) {
+                if (get_config('local_temporary_enrolments', 'remind_onoff') && $managedbyplugin > 0) {
                     $student = $DB->get_record('user', array('id' => $roleassignment->userid));
                     $context = $DB->get_record('context', array('id' => $roleassignment->contextid));
                     $course = $DB->get_record('course', array('id' => $context->instanceid));

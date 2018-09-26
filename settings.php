@@ -14,23 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Settings
+ *
+ * @package    local_temporary_enrolments
+ * @copyright  2018 onwards Lafayette College ITS
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 
 if ($hassiteconfig) {
-    global $DB, $CFG;
+    global $DB;
 
     // Begin the actual settings.
     $pluginname = get_string('pluginname', 'local_temporary_enrolments');
     $settings = new theme_boost_admin_settingspage_tabs('local_temporary_enrolments', $pluginname);
 
     // Main Settings.
-    $page = new admin_settingpage('local_temporary_enrolments_main', 'Main');
+    $page = new admin_settingpage('local_temporary_enrolments_main',
+            get_string('settings:headers:main', 'local_temporary_enrolments'));
 
     // On/off.
-    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_onoff',
-        get_string('onoff_desc', 'local_temporary_enrolments'),
-        get_string('onoff_subdesc', 'local_temporary_enrolments'),
+    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments/onoff',
+        get_string('settings:onoff:desc', 'local_temporary_enrolments'),
+        get_string('settings:onoff:subdesc', 'local_temporary_enrolments'),
         0));
 
     // Temporary marker role.
@@ -40,18 +49,18 @@ if ($hassiteconfig) {
         $contextlevels = $DB->get_records_menu('role_context_levels', array('roleid' => $k), '', 'id,contextlevel');
         return in_array(CONTEXT_COURSE, array_values($contextlevels));
     }, ARRAY_FILTER_USE_BOTH);
-    $temp = new admin_setting_configselect('local_temporary_enrolments_roleid',
-        get_string('roleid_desc', 'local_temporary_enrolments'),
-        get_string('roleid_subdesc', 'local_temporary_enrolments'),
+    $temp = new admin_setting_configselect('local_temporary_enrolments/roleid',
+        get_string('settings:roleid:desc', 'local_temporary_enrolments'),
+        get_string('settings:roleid:subdesc', 'local_temporary_enrolments'),
         0,
         $options);
-    $temp->set_updatedcallback('handle_existing_assignments');
+    $temp->set_updatedcallback('handle_update_roleid');
     $page->add($temp);
 
     // Duration.
-    $temp = new admin_setting_configduration('local_temporary_enrolments_length',
-        get_string('length_desc', 'local_temporary_enrolments'),
-        get_string('length_subdesc', 'local_temporary_enrolments'),
+    $temp = new admin_setting_configduration('local_temporary_enrolments/length',
+        get_string('settings:length:desc', 'local_temporary_enrolments'),
+        get_string('settings:length:subdesc', 'local_temporary_enrolments'),
         $defaultsetting = 1209600,
         $defaultunit = 604800);
     $temp->set_updatedcallback('handle_update_length');
@@ -60,12 +69,13 @@ if ($hassiteconfig) {
     $settings->add($page);
 
     // Email settings.
-    $page = new admin_settingpage('local_temporary_enrolments_email', 'Email');
+    $page = new admin_settingpage('local_temporary_enrolments_email',
+            get_string('settings:headers:email', 'local_temporary_enrolments'));
 
     // Reminder email frequency.
-    $temp = new admin_setting_configtext('local_temporary_enrolments_remind_freq',
-        get_string('remind_freq_desc', 'local_temporary_enrolments'),
-        get_string('remind_freq_subdesc', 'local_temporary_enrolments'),
+    $temp = new admin_setting_configtext('local_temporary_enrolments/remind_freq',
+        get_string('settings:remind_freq:desc', 'local_temporary_enrolments'),
+        get_string('settings:remind_freq:subdesc', 'local_temporary_enrolments'),
         $defaultsetting = '2',
         $paramtype = "/^0*[1-9]{1,2}$/",
         $size = 1);
@@ -73,79 +83,80 @@ if ($hassiteconfig) {
     $page->add($temp);
 
     // Emails on/off.
-    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_studentinit_onoff',
-        get_string('studentinit_onoff_desc', 'local_temporary_enrolments'),
-        get_string('studentinit_onoff_subdesc', 'local_temporary_enrolments'),
+    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments/studentinit_onoff',
+        get_string('settings:studentinit_onoff:desc', 'local_temporary_enrolments'),
+        get_string('settings:studentinit_onoff:subdesc', 'local_temporary_enrolments'),
         1));
 
-    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_teacherinit_onoff',
-        get_string('teacherinit_onoff_desc', 'local_temporary_enrolments'),
-        get_string('teacherinit_onoff_subdesc', 'local_temporary_enrolments'),
+    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments/teacherinit_onoff',
+        get_string('settings:teacherinit_onoff:desc', 'local_temporary_enrolments'),
+        get_string('settings:teacherinit_onoff:subdesc', 'local_temporary_enrolments'),
         1));
 
-    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_remind_onoff',
-        get_string('remind_onoff_desc', 'local_temporary_enrolments'),
-        get_string('remind_onoff_subdesc', 'local_temporary_enrolments'),
+    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments/remind_onoff',
+        get_string('settings:remind_onoff:desc', 'local_temporary_enrolments'),
+        get_string('settings:remind_onoff:subdesc', 'local_temporary_enrolments'),
         1));
 
-    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_expire_onoff',
-        get_string('expire_onoff_desc', 'local_temporary_enrolments'),
-        get_string('expire_onoff_subdesc', 'local_temporary_enrolments'),
+    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments/expire_onoff',
+        get_string('settings:expire_onoff:desc', 'local_temporary_enrolments'),
+        get_string('settings:expire_onoff:subdesc', 'local_temporary_enrolments'),
         1));
 
-    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_upgrade_onoff',
-        get_string('upgrade_onoff_desc', 'local_temporary_enrolments'),
-        get_string('upgrade_onoff_subdesc', 'local_temporary_enrolments'),
+    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments/upgrade_onoff',
+        get_string('settings:upgrade_onoff:desc', 'local_temporary_enrolments'),
+        get_string('settings:upgrade_onoff:subdesc', 'local_temporary_enrolments'),
         1));
 
     // Email content.
-    $page->add(new admin_setting_configtextarea('local_temporary_enrolments_studentinit_content',
-        get_string('studentinit_content_desc', 'local_temporary_enrolments'),
-        get_string('studentinit_content_subdesc', 'local_temporary_enrolments'),
-        get_string('studentinit_content_default', 'local_temporary_enrolments')));
+    $page->add(new admin_setting_configtextarea('local_temporary_enrolments/studentinit_content',
+        get_string('settings:studentinit_content:desc', 'local_temporary_enrolments'),
+        get_string('settings:studentinit_content:subdesc', 'local_temporary_enrolments'),
+        get_string('settings:studentinit_content:default', 'local_temporary_enrolments')));
 
-    $page->add(new admin_setting_configtextarea('local_temporary_enrolments_teacherinit_content',
-        get_string('teacherinit_content_desc', 'local_temporary_enrolments'),
-        get_string('teacherinit_content_subdesc', 'local_temporary_enrolments'),
-        get_string('teacherinit_content_default', 'local_temporary_enrolments')));
+    $page->add(new admin_setting_configtextarea('local_temporary_enrolments/teacherinit_content',
+        get_string('settings:teacherinit_content:desc', 'local_temporary_enrolments'),
+        get_string('settings:teacherinit_content:subdesc', 'local_temporary_enrolments'),
+        get_string('settings:teacherinit_content:default', 'local_temporary_enrolments')));
 
-    $page->add(new admin_setting_configtextarea('local_temporary_enrolments_remind_content',
-        get_string('remind_content_desc', 'local_temporary_enrolments'),
-        get_string('remind_content_subdesc', 'local_temporary_enrolments'),
-        get_string('remind_content_default', 'local_temporary_enrolments')));
+    $page->add(new admin_setting_configtextarea('local_temporary_enrolments/remind_content',
+        get_string('settings:remind_content:desc', 'local_temporary_enrolments'),
+        get_string('settings:remind_content:subdesc', 'local_temporary_enrolments'),
+        get_string('settings:remind_content:default', 'local_temporary_enrolments')));
 
-    $page->add(new admin_setting_configtextarea('local_temporary_enrolments_expire_content',
-        get_string('expire_content_desc', 'local_temporary_enrolments'),
-        get_string('expire_content_subdesc', 'local_temporary_enrolments'),
-        get_string('expire_content_default', 'local_temporary_enrolments')));
+    $page->add(new admin_setting_configtextarea('local_temporary_enrolments/expire_content',
+        get_string('settings:expire_content:desc', 'local_temporary_enrolments'),
+        get_string('settings:expire_content:subdesc', 'local_temporary_enrolments'),
+        get_string('settings:expire_content:default', 'local_temporary_enrolments')));
 
-    $page->add(new admin_setting_configtextarea('local_temporary_enrolments_upgrade_content',
-        get_string('upgrade_content_desc', 'local_temporary_enrolments'),
-        get_string('upgrade_content_subdesc', 'local_temporary_enrolments'),
-        get_string('upgrade_content_default', 'local_temporary_enrolments')));
+    $page->add(new admin_setting_configtextarea('local_temporary_enrolments/upgrade_content',
+        get_string('settings:upgrade_content:desc', 'local_temporary_enrolments'),
+        get_string('settings:upgrade_content:subdesc', 'local_temporary_enrolments'),
+        get_string('settings:upgrade_content:default', 'local_temporary_enrolments')));
 
     $settings->add($page);
 
     // Existing role assignment settings.
-    $page = new admin_settingpage('local_temporary_enrolments_existingassignments', 'Existing Role Assignments');
+    $page = new admin_settingpage('local_temporary_enrolments_existing_assignments',
+            get_string('settings:headers:existing_assignments', 'local_temporary_enrolments'));
 
-    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_existingassignments',
-        get_string('existingassignments_desc', 'local_temporary_enrolments'),
-        get_string('existingassignments_subdesc', 'local_temporary_enrolments'),
+    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments/existing_assignments',
+        get_string('settings:existing_assignments:desc', 'local_temporary_enrolments'),
+        get_string('settings:existing_assignments:subdesc', 'local_temporary_enrolments'),
         1));
 
-    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments_existingassignments_email',
-        get_string('existingassignments_email_desc', 'local_temporary_enrolments'),
-        get_string('existingassignments_email_subdesc', 'local_temporary_enrolments'),
+    $page->add(new admin_setting_configcheckbox('local_temporary_enrolments/existing_assignments_email',
+        get_string('settings:existing_assignments_email:desc', 'local_temporary_enrolments'),
+        get_string('settings:existing_assignments_email:subdesc', 'local_temporary_enrolments'),
         1));
 
-    $page->add(new admin_setting_configselect('local_temporary_enrolments_existingassignments_start',
-        get_string('existingassignments_start_desc', 'local_temporary_enrolments'),
-        get_string('existingassignments_start_subdesc', 'local_temporary_enrolments'),
+    $page->add(new admin_setting_configselect('local_temporary_enrolments/existing_assignments_start',
+        get_string('settings:existing_assignments_start:desc', 'local_temporary_enrolments'),
+        get_string('settings:existing_assignments_start:subdesc', 'local_temporary_enrolments'),
         1,
         array(
-          0 => 'From assignment start time',
-          1 => 'From right now',
+          0 => get_string('settings:existing_assignments_start:from_start', 'local_temporary_enrolments'),
+          1 => get_string('settings:existing_assignments_start:from_now', 'local_temporary_enrolments')
         )));
 
     $settings->add($page);
