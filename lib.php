@@ -89,7 +89,7 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
  * Add a role assignment to the custom table.
  *
  * @param int $raid Role assignment id.
- * @param int $raroleid Role id.
+ * @param int $roleid Role id.
  * @param int $timecreated Time the role assignment was created.
  *
  * @return boolean|int The id of the inserted record, or false on failure.

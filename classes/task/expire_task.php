@@ -30,8 +30,7 @@ require_once($CFG->dirroot. '/lib/accesslib.php');
 use stdClass;
 
 /**
- * Scheduled task (cron task) that checks for expired Temporary role assignments
- * and removes them.
+ * Scheduled task (cron task) that checks for expired Temporary role assignments and removes them.
  *
  * @copyright  2018 onwards Lafayette College ITS
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

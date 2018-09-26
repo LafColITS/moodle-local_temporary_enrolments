@@ -29,8 +29,7 @@ require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 require_once($CFG->dirroot. '/lib/moodlelib.php');
 
 /**
- * Adhoc task that handles pre-existing role assignments (for when the temporary
- * marker role is changed).
+ * Adhoc task that handles pre-existing role assignments (for when the temporary marker role is changed).
  *
  * @copyright  2018 onwards Lafayette College ITS
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
