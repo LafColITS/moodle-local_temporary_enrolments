@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Defines adhoc task class for existing assignment handling.
+ *
  * @package    local_temporary_enrolments
  * @copyright  2018 onwards Lafayette College ITS
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -29,17 +31,29 @@ require_once($CFG->dirroot. '/lib/moodlelib.php');
 /**
  * Adhoc task that handles pre-existing role assignments (for when the temporary
  * marker role is changed).
+ *
+ * @copyright  2018 onwards Lafayette College ITS
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class existing_assignments_task extends \core\task\adhoc_task {
 
+    /**
+     * Get component name for this adhoc task.
+     *
+     * @return string Component name.
+     */
     public function get_component() {
         return 'local_temporary_enrolments';
     }
 
+    /**
+     * Execute adhoc task.
+     */
     public function execute() {
         global $DB;
 
         // If existing assignments management is turned off, abort.
+        // I use a DB query here to avoid a weird caching issue.
         $onoff = $DB->get_record('config_plugins', array('plugin' => 'local_temporary_enrolments', 'name' => 'existing_assignments'));
         if ( ! $onoff->value) {
             return true;

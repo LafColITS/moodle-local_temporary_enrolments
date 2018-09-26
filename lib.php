@@ -29,9 +29,12 @@ require_once($CFG->dirroot. '/lib/moodlelib.php');
 /**
  * Send an email (init, remind, upgrade, or expire).
  *
- * @param object $data This should be an event object (or in the case of remind_task(), a fake event object).
- * @param string $which studentinit | teacherinit | remind | upgrade | expire
- * @param string $sendto relateduserid | userid (defaults to student, can be set to 'userid' to send to teacher)
+ * @param int $assignerid The id of the user who assigned the role.
+ * @param int $assigneeid The id of the user whom the role was assigned to.
+ * @param int $courseid The id of the course in which the role was assigned.
+ * @param int $raid The id of the role assignment record.
+ * @param string $which Which email to send: [ studentinit | teacherinit | remind | upgrade | expire ]
+ * @param string $sendto Who to send it to: [ assigneeid | assignerid ] (defaults to assignerid)
  *
  * @return void
  */
@@ -85,50 +88,74 @@ function send_temporary_enrolments_email($assignerid, $assigneeid, $courseid, $r
 /**
  * Add a role assignment to the custom table.
  *
- * @param int $raid Role assignment id
- * @param int $raroleid Role assignment role id
- * @param int $timecreated Time the role assignment was created
+ * @param int $raid Role assignment id.
+ * @param int $raroleid Role id.
+ * @param int $timecreated Time the role assignment was created.
  *
- * @return void
+ * @return boolean|int The id of the inserted record, or false on failure.
  */
-function add_to_custom_table($raid, $raroleid, $timecreated) {
+function add_to_custom_table($raid, $roleid, $timecreated) {
     global $DB;
 
     // Abort if this role assignment is already stored.
-    $dupe = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $raid, 'roleid' => $raroleid));
+    $dupe = $DB->get_record('local_temporary_enrolments', array('roleassignid' => $raid, 'roleid' => $roleid));
     if ($dupe) {
         return false;
     }
 
     $insert = new stdClass();
     $insert->roleassignid = $raid;
-    $insert->roleid = $raroleid; // Stored so we can easily check that table is up to date if role settings are changed.
+    $insert->roleid = $roleid; // Stored so we can easily check that table is up to date if role settings are changed.
     $length = get_config('local_temporary_enrolments', 'length');
     $insert->timeend = $timecreated + $length;
     $insert->timestart = $timecreated;
     return $DB->insert_record('local_temporary_enrolments', $insert);
 }
 
+/**
+ * Retrieve and return the role record for the current
+ * temporary marker role.
+ *
+ * @return object Role data.
+ */
 function get_temp_role() {
     global $DB;
 
+    // I use a DB query here to avoid a weird caching issue.
     if ($id = $DB->get_record('config_plugins', array('plugin' => 'local_temporary_enrolments', 'name' => 'roleid') )->value ) {
         return $DB->get_record('role', array('id' => $id));
     }
 }
 
+/**
+ * Handle change in the temporary enrolment length setting.
+ *
+ * @return void
+ */
 function handle_update_length() {
     global $DB;
     $length = get_config('local_temporary_enrolments', 'length');
     update_length($length);
 }
 
+/**
+ * Handle change in the reminder email frequency setting.
+ *
+ * @return void
+ */
 function handle_update_reminder_freq() {
     global $DB;
     $remindfreq = get_config('local_temporary_enrolments', 'remind_freq');
     update_remind_freq($remindfreq);
 }
 
+/**
+ * Remove all entries from the custom table, optionally by role id.
+ *
+ * @param int|string $roleid (optional) The role id to filter by. Optional.
+ *
+ * @return void
+ */
 function wipe_table($roleid = null) {
     global $DB;
 
@@ -139,6 +166,13 @@ function wipe_table($roleid = null) {
     }
 }
 
+/**
+ * Set up adhoc task for existing assignments.
+ *
+ * @param int|string $roleid The id of the new temporary marker role.
+ *
+ * @return adhoc_task The adhoc task object.
+ */
 function make_task($roleid) {
     $task = new \local_temporary_enrolments\task\existing_assignments_task();
     $taskdata = new stdClass();
@@ -147,6 +181,11 @@ function make_task($roleid) {
     return $task;
 }
 
+/**
+ * Handle change in temporary marker role id setting.
+ *
+ * @return void
+ */
 function handle_update_roleid() {
     global $DB;
 
@@ -168,10 +207,9 @@ function handle_update_roleid() {
 }
 
 /**
- * Update the frequency of reminder emails in the database (based on config)
+ * Update the frequency of reminder emails in the database (based on config).
  *
- * @param object $task Should be a the remind_task entry from task_scheduled table
- * @param object $newfreq Should be the config value for remind frequency
+ * @param int $newfreq New value for reminder frequency.
  *
  * @return void
  */
@@ -182,12 +220,13 @@ function update_remind_freq($newfreq) {
 }
 
 /**
- * Update the remaining length of a temporary enrolment
+ * Update the remaining length of a temporary enrolment.
  *
- * @param object $newlength Should be the updated length of the temporary enrolment
+ * @param object $newlength New length of temporary enrolments.
  *
  * @return void
- */function update_length($newlength) {
+ */
+function update_length($newlength) {
     global $DB;
 
     $expirations = $DB->get_records('local_temporary_enrolments');

@@ -32,13 +32,24 @@ use stdClass;
 /**
  * Scheduled task (cron task) that checks for expired Temporary role assignments
  * and removes them.
+ *
+ * @copyright  2018 onwards Lafayette College ITS
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class expire_task extends \core\task\scheduled_task {
 
+    /**
+     * Get name of scheduled task.
+     *
+     * @return string The name of the scheduled task.
+     */
     public function get_name() {
         return get_string('task:expire', 'local_temporary_enrolments');
     }
 
+    /**
+     * Execute scheduled task.
+     */
     public function execute() {
         global $DB;
 

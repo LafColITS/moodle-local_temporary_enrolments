@@ -26,17 +26,27 @@ namespace local_temporary_enrolments\task;
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
-use stdClass;
 
 /**
  * Scheduled task (cron task) that sends out reminder emails.
+ *
+ * @copyright  2018 onwards Lafayette College ITS
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class remind_task extends \core\task\scheduled_task {
 
+    /**
+     * Get name of scheduled task.
+     *
+     * @return string The name of the scheduled task.
+     */
     public function get_name() {
         return get_string('task:remind', 'local_temporary_enrolments');
     }
 
+    /**
+     * Execute scheduled task.
+     */
     public function execute() {
         global $DB;
 
