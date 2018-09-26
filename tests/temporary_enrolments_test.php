@@ -50,7 +50,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         // Temporary enrolment role.
         $this->data['temprole'] = $this->getDataGenerator()->create_role(array('shortname' => 'test_temporary_role'));
-        set_config('local_temporary_enrolments_roleid', $this->data['temprole']);
+        set_config('roleid', $this->data['temprole'], 'local_temporary_enrolments');
 
         // Test teacher user.
         $this->data['teacher'] = $this->getDataGenerator()->create_user(array(
@@ -112,13 +112,13 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $DB->delete_records('local_temporary_enrolments');
 
         // Config defaults.
-        set_config('local_temporary_enrolments_onoff', 1);
-        set_config('local_temporary_enrolments_studentinit_onoff', 1);
-        set_config('local_temporary_enrolments_teacherinit_onoff', 1);
-        set_config('local_temporary_enrolments_expire_onoff', 1);
-        set_config('local_temporary_enrolments_remind_onoff', 1);
-        set_config('local_temporary_enrolments_upgrade_onoff', 1);
-        set_config('local_temporary_enrolments_length', 1209600);
+        set_config('onoff', 1, 'local_temporary_enrolments');
+        set_config('studentinit_onoff', 1, 'local_temporary_enrolments');
+        set_config('teacherinit_onoff', 1, 'local_temporary_enrolments');
+        set_config('expire_onoff', 1, 'local_temporary_enrolments');
+        set_config('remind_onoff', 1, 'local_temporary_enrolments');
+        set_config('upgrade_onoff', 1, 'local_temporary_enrolments');
+        set_config('length', 1209600, 'local_temporary_enrolments');
         $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
         $update = new stdClass();
         $update->id = $task->id;
@@ -138,6 +138,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
      * @return void
      */
     public function emailHas($email, $body, $subject, $to) {
+        $this->assertInternalType('object', $email);
         $this->assertContains('Auto-Submitted: auto-generated', $email->header);
         $this->assertContains('noreply@', $email->from);
         foreach ($body as $s) {
@@ -158,7 +159,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         global $DB;
 
         for ($i = 0; $i <= 1; $i++) {
-            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('onoff', $i, 'local_temporary_enrolments');
 
             $event = \core\event\role_assigned::create(array(
                 'context' => $this->data['coursecontext'],
@@ -208,7 +209,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $this->resetAfterTest();
         global $DB;
 
-        set_config('local_temporary_enrolments_onoff', 1);
+        set_config('onoff', 1, 'local_temporary_enrolments');
 
         $students = array();
 
@@ -255,10 +256,12 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $this->assertEquals(2, count($currententries));
 
         // And if we switch up the config and run handle_existing_assignments...
-        set_config('local_temporary_enrolments_roleid', $testrole2);
+        set_config('roleid', $testrole2, 'local_temporary_enrolments');
         // Temp role is now test_role2.
         $sink = $this->redirectEmails();
-        handle_existing_assignments();
+        wipe_table();
+        $task = make_task($testrole2);
+        $task->execute();
         $sink->close();
 
         $currententries = $DB->get_records('local_temporary_enrolments');
@@ -268,14 +271,16 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         // ... it correctly grabs new role assignments, yay!
 
         // What about emails?
-        set_config('local_temporary_enrolments_roleid', $testrole1);
+        set_config('roleid', $testrole1, 'local_temporary_enrolments');
 
         $sink = $this->redirectEmails();
-        handle_existing_assignments();
+        wipe_table();
+        $task = make_task($testrole1);
+        $task->execute();
         $sink->close();
         $results = $sink->get_messages();
 
-        $this->assertEquals(count($results), 2);
+        $this->assertEquals(2, count($results));
 
         // Get whichever email was for Harry so we know what to check for.
         $check = array_filter($results, function($email) {
@@ -287,22 +292,26 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         $this->emailHas(reset($check), $body, $subject, 'hpindahouse@hogwarts.owl');
 
         // And if the email option is turned off?
-        set_config('local_temporary_enrolments_existingassignments_email', 0);
-        set_config('local_temporary_enrolments_roleid', $testrole2);
+        set_config('existing_assignments_email', 0, 'local_temporary_enrolments');
+        set_config('roleid', $testrole2, 'local_temporary_enrolments');
 
         $sink = $this->redirectEmails();
-        handle_existing_assignments();
+        wipe_table();
+        $task = make_task($testrole2);
+        $task->execute();
         $sink->close();
         $results = $sink->get_messages();
 
         $this->assertEquals(count($results), 0);
 
         // Start time: at creation.
-        set_config('local_temporary_enrolments_existingassignments_start', 0);
-        set_config('local_temporary_enrolments_roleid', $testrole1);
+        set_config('existing_assignments_start', 0, 'local_temporary_enrolments');
+        set_config('roleid', $testrole1, 'local_temporary_enrolments');
 
         $sink = $this->redirectEmails();
-        handle_existing_assignments();
+        wipe_table();
+        $task = make_task($testrole1);
+        $task->execute();
         $sink->close();
 
         $currententries = $DB->get_records('local_temporary_enrolments');
@@ -314,11 +323,13 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         // Start time: now.
         sleep(10); // To ensure a time gap between role assignment and this bit of the test.
-        set_config('local_temporary_enrolments_existingassignments_start', 1);
-        set_config('local_temporary_enrolments_roleid', $testrole2);
+        set_config('existing_assignments_start', 1, 'local_temporary_enrolments');
+        set_config('roleid', $testrole2, 'local_temporary_enrolments');
 
         $sink = $this->redirectEmails();
-        handle_existing_assignments();
+        wipe_table();
+        $task = make_task($testrole2);
+        $task->execute();
         $sink->close();
 
         $currententries = $DB->get_records('local_temporary_enrolments');
@@ -343,7 +354,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         global $DB;
 
         for ($i = 0; $i <= 1; $i++) {
-            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('onoff', $i, 'local_temporary_enrolments');
 
             // Self enrol student.
             $sink = $this->redirectEmails();
@@ -378,7 +389,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         global $DB;
 
         for ($i = 0; $i <= 1; $i++) {
-            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('onoff', $i, 'local_temporary_enrolments');
 
             $event = \core\event\role_assigned::create(array(
                 'context' => $this->data['coursecontext'],
@@ -406,7 +417,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
             }
 
             // Studentinit turned off.
-            set_config('local_temporary_enrolments_studentinit_onoff', 0);
+            set_config('studentinit_onoff', 0, 'local_temporary_enrolments');
             $event = \core\event\role_assigned::create(array(
                 'context' => $this->data['coursecontext'],
                 'objectid' => $this->data['temprole'],
@@ -431,8 +442,8 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
             }
 
             // Teacherinit turned off.
-            set_config('local_temporary_enrolments_teacherinit_onoff', 0);
-            set_config('local_temporary_enrolments_studentinit_onoff', 1);
+            set_config('teacherinit_onoff', 0, 'local_temporary_enrolments');
+            set_config('studentinit_onoff', 1, 'local_temporary_enrolments');
             $event = \core\event\role_assigned::create(array(
                 'context' => $this->data['coursecontext'],
                 'objectid' => $this->data['temprole'],
@@ -456,7 +467,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
             }
 
             // Both initial emails off.
-            set_config('local_temporary_enrolments_studentinit_onoff', 0);
+            set_config('studentinit_onoff', 0, 'local_temporary_enrolments');
             $event = \core\event\role_assigned::create(array(
                 'context' => $this->data['coursecontext'],
                 'objectid' => $this->data['temprole'],
@@ -487,15 +498,15 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         global $DB;
 
         for ($i = 0; $i <= 1; $i++) {
-            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('onoff', $i, 'local_temporary_enrolments');
 
             $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
             $this->assertEquals(0, $task->minute);
             $this->assertEquals(8, $task->hour);
             $this->assertEquals('*/2', $task->day);
 
-            set_config('local_temporary_enrolments_remind_freq', 4);
-            update_remind_freq($task, $DB->get_record('config', array('name' => 'local_temporary_enrolments_remind_freq')));
+            set_config('remind_freq', 4, 'local_temporary_enrolments');
+            update_remind_freq(get_config('local_temporary_enrolments', 'remind_freq'));
 
             $task = $DB->get_record('task_scheduled', array('classname' => '\local_temporary_enrolments\task\remind_task'));
             $this->assertEquals('*/4', $task->day);
@@ -515,7 +526,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         global $DB;
 
         for ($i = 0; $i <= 1; $i++) {
-            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('onoff', $i, 'local_temporary_enrolments');
 
             $sink = $this->redirectEmails();
             $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
@@ -537,7 +548,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
             }
 
             // Remind emails off.
-            set_config('local_temporary_enrolments_remind_onoff', 0);
+            set_config('remind_onoff', 0, 'local_temporary_enrolments');
             $sink = $this->redirectEmails();
             $task->execute();
             $sink->close();
@@ -560,7 +571,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         for ($i = 0; $i <= 1; $i++) {
             $sink = $this->redirectEmails();
-            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('onoff', $i, 'local_temporary_enrolments');
 
             // No roles left: remove.
             $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
@@ -600,14 +611,14 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         global $DB;
 
         for ($i = 0; $i <= 1; $i++) {
-            set_config('local_temporary_enrolments_onoff', 1);
+            set_config('onoff', 1, 'local_temporary_enrolments');
 
             $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
 
             $customtable = $DB->get_records('local_temporary_enrolments');
             $this->assertEquals(1, count($customtable));
 
-            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('onoff', $i, 'local_temporary_enrolments');
             role_unassign($this->data['temprole'], $this->data['student']->id, $this->data['coursecontext']->id);
             $customtable = $DB->get_records('local_temporary_enrolments');
             $this->assertEquals(0, count($customtable));
@@ -626,8 +637,8 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         for ($i = 0; $i <= 1; $i++) {
             $sink = $this->redirectEmails();
-            set_config('local_temporary_enrolments_onoff', $i);
-            set_config('local_temporary_enrolments_length', 5);
+            set_config('onoff', $i, 'local_temporary_enrolments');
+            set_config('length', 5, 'local_temporary_enrolments');
 
             $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
             $roleassignments = $DB->get_records('role_assignments');
@@ -657,15 +668,15 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         for ($i = 0; $i <= 1; $i++) {
             $sink = $this->redirectEmails();
-            set_config('local_temporary_enrolments_onoff', 1);
+            set_config('onoff', 1, 'local_temporary_enrolments');
 
             $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
 
             $expire = $DB->get_record('local_temporary_enrolments', array());
-            $length = $DB->get_record('config', array('name' => 'local_temporary_enrolments_length'));
-            $this->assertEquals($length->value, ($expire->timeend - $expire->timestart));
+            $length = get_config('local_temporary_enrolments', 'length');
+            $this->assertEquals($length, ($expire->timeend - $expire->timestart));
 
-            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('onoff', $i, 'local_temporary_enrolments');
 
             $newlength = 100;
             update_length($newlength);
@@ -689,7 +700,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         global $DB;
 
         for ($i = 0; $i <= 1; $i++) {
-            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('onoff', $i, 'local_temporary_enrolments');
 
             $sink = $this->redirectEmails();
             $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
@@ -728,7 +739,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
             }
 
             // Expire email off.
-            set_config('local_temporary_enrolments_expire_onoff', 0);
+            set_config('expire_onoff', 0, 'local_temporary_enrolments');
             $sink = $this->redirectEmails();
             $this->data['me_plugin']->unenrol_user($this->data['manualenrol'], $this->data['student']->id);
             $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
@@ -773,7 +784,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
 
         for ($i = 0; $i <= 1; $i++) {
             $sink = $this->redirectEmails();
-            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('onoff', $i, 'local_temporary_enrolments');
 
             $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
 
@@ -802,7 +813,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
         global $DB;
 
         for ($i = 0; $i <= 1; $i++) {
-            set_config('local_temporary_enrolments_onoff', $i);
+            set_config('onoff', $i, 'local_temporary_enrolments');
 
             $sink = $this->redirectEmails();
             $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
@@ -832,7 +843,7 @@ class local_temporary_enrolments_testcase extends advanced_testcase {
             }
 
             // Upgrade email off.
-            set_config('local_temporary_enrolments_upgrade_onoff', 0);
+            set_config('upgrade_onoff', 0, 'local_temporary_enrolments');
             $sink = $this->redirectEmails();
             $this->data['me_plugin']->enrol_user($this->data['manualenrol'], $this->data['student']->id, $this->data['temprole']);
             $sink->close();

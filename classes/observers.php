@@ -31,6 +31,12 @@ require_once($CFG->dirroot. '/local/temporary_enrolments/lib.php');
 require_once($CFG->dirroot. '/lib/accesslib.php');
 use stdClass;
 
+/**
+ * This class defines callback functions that respond to Moodle events.
+ *
+ * @copyright  2018 onwards Lafayette College ITS
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class observers {
 
     /**
@@ -42,10 +48,10 @@ class observers {
      * @return void
      */
     public static function initialize($event) {
-        global $DB, $CFG;
+        global $DB;
 
         $role = get_temp_role();
-        if (!$CFG->local_temporary_enrolments_onoff || $event->objectid != $role->id) {
+        if (!get_config('local_temporary_enrolments', 'onoff') || $event->objectid != $role->id) {
             return;
         }
 
@@ -64,13 +70,13 @@ class observers {
         } else {
 
             // Send STUDENT initial email.
-            if ($CFG->local_temporary_enrolments_studentinit_onoff) {
+            if (get_config('local_temporary_enrolments', 'studentinit_onoff')) {
                 $which = 'studentinit';
                 send_temporary_enrolments_email($assigner, $assignee, $course, $roleassignment, $which);
             }
 
             // Send TEACHER initial email.
-            if ($CFG->local_temporary_enrolments_teacherinit_onoff) {
+            if (get_config('local_temporary_enrolments', 'teacherinit_onoff')) {
                 $which = 'teacherinit';
                 send_temporary_enrolments_email($assigner, $assignee, $course, $roleassignment, $which, 'assignerid');
             }
@@ -87,10 +93,10 @@ class observers {
      * @return void
      */
     public static function upgrade($event) {
-        global $DB, $CFG;
+        global $DB;
 
         $role = get_temp_role();
-        if (!$CFG->local_temporary_enrolments_onoff || $event->objectid == $role->id) {
+        if (!get_config('local_temporary_enrolments', 'onoff') || $event->objectid == $role->id) {
             return;
         }
 
@@ -108,7 +114,7 @@ class observers {
         // If student has temp role...
         if ($hasrole) {
             // Send upgrade email.
-            if ($CFG->local_temporary_enrolments_upgrade_onoff) {
+            if (get_config('local_temporary_enrolments', 'upgrade_onoff')) {
                 $which = 'upgrade';
                 send_temporary_enrolments_email($assigner, $assignee, $course, $roleassignment, $which);
             }
@@ -131,7 +137,7 @@ class observers {
      * @return void
      */
     public static function expire($event) {
-        global $DB, $CFG;
+        global $DB;
 
         $role = get_temp_role();
         // Is this an event involving the temporary role?
@@ -154,12 +160,13 @@ class observers {
         }
 
         // Is the plugin turned on?
-        if (!$CFG->local_temporary_enrolments_onoff) {
+        if (!get_config('local_temporary_enrolments', 'onoff')) {
             return;
         }
 
         // Check if the enrolment was removed by upgrade(), and if not, send expiration email.
-        if (gettype($expiration) == 'object' && !$expiration->upgraded && $CFG->local_temporary_enrolments_expire_onoff) {
+        if (gettype($expiration) == 'object'
+            && !$expiration->upgraded && get_config('local_temporary_enrolments', 'expire_onoff')) {
             $which = 'expire';
             send_temporary_enrolments_email($assigner, $assignee, $course, $roleassignment, $which);
         }
