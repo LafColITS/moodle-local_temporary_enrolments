@@ -63,7 +63,7 @@ This plugin is maintained with separate releases and branches for each major Moo
 Releases are tagged based on the following pattern:
 [major].[minor].[patch]-[Moodle major version].[Moodle version specific patch]
 
-For example, v1.5.7-35.1 would be plugin veresion 1.5.7 for Moodle 35, and includes one Moodle 35 specific patch for this plugin version. It would have corresponding versions v1.5.7-34.X and v1.5.7-33.X.
+For example, v1.5.7-35.1 would be plugin vresion 1.5.7 for Moodle 35, and includes one Moodle 35 specific patch for this plugin version. It would have corresponding versions v1.5.7-34.X and v1.5.7-33.X.
 
 ## Acknowledgements
 
