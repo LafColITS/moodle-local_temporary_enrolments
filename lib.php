@@ -133,7 +133,6 @@ function get_temp_role() {
  * @return void
  */
 function handle_update_length() {
-    global $DB;
     $length = get_config('local_temporary_enrolments', 'length');
     update_length($length);
 }
@@ -144,7 +143,6 @@ function handle_update_length() {
  * @return void
  */
 function handle_update_reminder_freq() {
-    global $DB;
     $remindfreq = get_config('local_temporary_enrolments', 'remind_freq');
     update_remind_freq($remindfreq);
 }
@@ -187,8 +185,6 @@ function make_task($roleid) {
  * @return void
  */
 function handle_update_roleid() {
-    global $DB;
-
     $newroleid = required_param('s_local_temporary_enrolments_roleid', PARAM_ALPHANUMEXT);
     $oldroleid = get_temp_role()->id;
 

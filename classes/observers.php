@@ -165,7 +165,8 @@ class observers {
         }
 
         // Check if the enrolment was removed by upgrade(), and if not, send expiration email.
-        if (gettype($expiration) == 'object' && !$expiration->upgraded && get_config('local_temporary_enrolments', 'expire_onoff')) {
+        if (gettype($expiration) == 'object'
+            && !$expiration->upgraded && get_config('local_temporary_enrolments', 'expire_onoff')) {
             $which = 'expire';
             send_temporary_enrolments_email($assigner, $assignee, $course, $roleassignment, $which);
         }

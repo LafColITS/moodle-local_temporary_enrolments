@@ -54,7 +54,8 @@ class existing_assignments_task extends \core\task\adhoc_task {
 
         // If existing assignments management is turned off, abort.
         // I use a DB query here to avoid a weird caching issue.
-        $onoff = $DB->get_record('config_plugins', array('plugin' => 'local_temporary_enrolments', 'name' => 'existing_assignments'));
+        $onoff = $DB->get_record('config_plugins',
+                array('plugin' => 'local_temporary_enrolments', 'name' => 'existing_assignments'));
         if ( ! $onoff->value) {
             return true;
         }
