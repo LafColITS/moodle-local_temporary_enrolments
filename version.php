@@ -30,4 +30,4 @@ $plugin->version   = 2018092600;                    // The current plugin versio
 $plugin->requires  = 2018051702;                    // Requires this Moodle version.
 $plugin->component = 'local_temporary_enrolments';  // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_BETA;
-$plugin->release   = '1.0.0';                       // Pattern: [major].[minor].[patch]-[Moodle Version].[Moodle version specific patch].
+$plugin->release   = '1.0.0'; // Pattern: [major].[minor].[patch]-[Moodle Version].[Moodle version specific patch].
