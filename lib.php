@@ -185,6 +185,8 @@ function make_task($roleid) {
  * @return void
  */
 function handle_update_roleid() {
+    global $DB;
+
     $newroleid = required_param('s_local_temporary_enrolments_roleid', PARAM_ALPHANUMEXT);
     $oldroleid = get_temp_role()->id;
 
@@ -192,9 +194,12 @@ function handle_update_roleid() {
     wipe_table($oldroleid);
 
     // If there's already an existing task, remove it.
-    $existingtask = \core\task\manager::get_adhoc_tasks('\local_temporary_enrolments\task\existing_assignments_task');
+    $existingtask = $DB->get_record('task_adhoc', array(
+        'component' => 'local_temporary_enrolments',
+        'classname' => '\local_temporary_enrolments\tasks\existing_assignments_task'));
     if (gettype($existingtask) == 'object') {
-        \core\task\manager::adhoc_task_complete($existingtask);
+        $taskobj = \core\task\manager::adhoc_task_from_record($existingtask);
+        \core\task\manager::adhoc_task_complete($taskobj);
     }
 
     // Make a new task and schedule it.
