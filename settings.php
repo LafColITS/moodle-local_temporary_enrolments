@@ -33,7 +33,7 @@ if ($hassiteconfig) {
     $settings = new theme_boost_admin_settingspage_tabs('local_temporary_enrolments', $pluginname);
 
     // Main Settings.
-    $page = new admin_settingpage('local_temporary_enrolments_main', 'Main');
+    $page = new admin_settingpage('local_temporary_enrolments_main', get_string('settings:headers:main', 'local_temporary_enrolments'));
 
     // On/off.
     $page->add(new admin_setting_configcheckbox('local_temporary_enrolments/onoff',
@@ -68,7 +68,7 @@ if ($hassiteconfig) {
     $settings->add($page);
 
     // Email settings.
-    $page = new admin_settingpage('local_temporary_enrolments_email', 'Email');
+    $page = new admin_settingpage('local_temporary_enrolments_email', get_string('settings:headers:email', 'local_temporary_enrolments'));
 
     // Reminder email frequency.
     $temp = new admin_setting_configtext('local_temporary_enrolments/remind_freq',
@@ -135,7 +135,7 @@ if ($hassiteconfig) {
     $settings->add($page);
 
     // Existing role assignment settings.
-    $page = new admin_settingpage('local_temporary_enrolments_existing_assignments', 'Existing Role Assignments');
+    $page = new admin_settingpage('local_temporary_enrolments_existing_assignments', get_string('settings:headers:existing_assignments', 'local_temporary_enrolments'));
 
     $page->add(new admin_setting_configcheckbox('local_temporary_enrolments/existing_assignments',
         get_string('settings:existing_assignments:desc', 'local_temporary_enrolments'),
