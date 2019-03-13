@@ -23,6 +23,12 @@
  */
 
 $string['pluginname'] = 'Temporary enrolments';
+$string['privacy:metadata:table'] = 'Data describing each temporary enrolment.';
+$string['privacy:metadata:roleassignid'] = 'ID of the role assign object related to this temporary enrolment.';
+$string['privacy:metadata:roleid'] = 'ID of the role given to the user in the role assignment for this temporary enrolment.';
+$string['privacy:metadata:timestart'] = 'Timestamp of time at which the temporary enrolment began.';
+$string['privacy:metadata:timeend'] = 'Timestamp of time at which the temporary enrolment will end.';
+$string['privacy:metadata:export_description'] = 'Your temporary enrolment within this course';
 $string['settings:existing_assignments:desc'] = 'Manage existing role assignments?';
 $string['settings:existing_assignments:subdesc'] = 'If the selected temporary marker role is already assigned to some users: Do you want those role assignments to become temporary, and be brought under the management of this plugin?';
 $string['settings:existing_assignments_email:desc'] = 'Send emails for pre-existing assignments?';
