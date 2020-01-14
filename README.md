@@ -3,6 +3,8 @@
 
 ## Introduction
 
+[RETIRED] This plugin is no longer maintained and there will be no further releases.
+
 **A Moodle plugin to manage temporary/provisional course site access for wait-listed or unregistered students.**
 
 Often a student or other user needs to be given access to a course site -- in order to read the syllabus, complete homework, etc. -- but is not officially enrolled in the course (i.e., through the registrar.) They may be waitlisted, not have turned in their registration form, or be waiting for their registration to process. A potential and easy solution is to allow teachers/professors to enrol users in their Moodle courses. When a student requires access but has not been granted it through the usual process, due to not being registered, they can ask the teacher and the teacher can give them access to the course website by enrolling them in Moodle.
